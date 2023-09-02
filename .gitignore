@@ -110,3 +110,6 @@ ENV/
 
 # API Key File
 fmi-personal-key*
+
+# Tickers files
+tickers_list*
