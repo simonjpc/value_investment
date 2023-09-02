@@ -107,3 +107,6 @@ ENV/
 
 # Mac sutff
 .DS_Store
+
+# API Key File
+fmi-personal-key*
