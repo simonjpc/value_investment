@@ -22,7 +22,7 @@ from valuation.constants import (
     FILLING_DATE_KEY,
 )
 
-from typing import Dict, Any, Tuple
+from typing import Dict, Any, Tuple, List
 import numpy as np
 import pandas as pd
 from valuation.extractor import get_prices_in_range
@@ -139,18 +139,51 @@ def compute_de_ratio(deco: Dict[str, Any], obligation_type: str) -> float:
         )
     return deco.get(obligation_type, 1e6) / deco.get(STOCKHOLDERS_EQUITY_KEY, 1e-6)
 
-def get_date_window(
+def get_date_range(
     date: pd.Timestamp, window_start_offset: int = 30, window_end_offset: int = 46
 ) -> Tuple[str, str]:
     window_start = (date + pd.DateOffset(days=window_start_offset)).date()
     window_end = (date + pd.DateOffset(days=window_end_offset)).date()
     return str(window_start), str(window_end)
 
-def compute_price_at_reporting_date(deco, ticker):
+def get_reporting_window(deco):
     filling_date = deco.get(FILLING_DATE_KEY, None)
     
     if filling_date is None:
-        reporting_start, reporting_end = get_date_window(filling_date)
+        reporting_start, reporting_end = get_date_range(filling_date)
+    else:
+        reporting_start = filling_date
+        reporting_datetime = pd.to_datetime(filling_date) + pd.DateOffset(days=3)
+        reporting_end = str(reporting_datetime.date())
+    return reporting_start, reporting_end, filling_date is not None
+
+#def compute_avg_price(data_prices: Dict[str, Any]) -> float:
+#    historical_prices = data_prices.get("historical", {})
+
+def get_price_history(deco: Dict[str, Any]) -> List[Dict[str, Any]]:
+    return deco.get("historical", [])
+
+#def get_reporting_prices(iterator: List[Dict[str, Any]], price_key: str = "low") -> List[float]:
+#    prices = get_key_from_iterator(iterator, price_key)
+#    return prices
+
+def compute_price_at_reporting_date(prices: List[str], filling_date_flag: bool) -> float:
+    if filling_date_flag is False:
+        range_price_lows = get_key_from_iterator(prices, "low")
+    else:
+        range_price_lows = get_key_from_iterator(prices[:2], "low")
+    if range_price_lows:
+        avg_price_at_report = compute_avg_value(range_price_lows)
+    else:
+        avg_price_at_report = np.Inf
+    return avg_price_at_report
+
+# DEPRICATED
+def compute_price_at_reporting_date_OLD(deco, ticker):
+    filling_date = deco.get(FILLING_DATE_KEY, None)
+    
+    if filling_date is None:
+        reporting_start, reporting_end = get_date_range(filling_date)
     else:
         reporting_start = filling_date
         reporting_datetime = pd.to_datetime(filling_date) + pd.DateOffset(days=3)

@@ -47,7 +47,7 @@ def get_balance_sheet_info(ticker: str, nb_years: int = 10) -> List[Dict[str, An
 
     return [] # Return an empty list if we fall in an exception
 
-def get_prices_in_range(ticker: str, window_start: str, window_end: str) -> List[Dict[str, Any]]:
+def get_prices_in_range(ticker: str, window_start: str, window_end: str) -> Dict[str, Any]:
     url_prices = f"{API_BASE_PATH}/historical-price-full/{ticker}"
     
     params = {
@@ -66,7 +66,7 @@ def get_prices_in_range(ticker: str, window_start: str, window_end: str) -> List
     except ValueError as e:
         print(f"JSON decoding error: {e}")
     
-    return []  # Return an empty list if hitting an exception
+    return {}  # Return an empty list if hitting an exception
 
 def get_current_price(ticker: str) -> float:
     url_price = f"{API_BASE_PATH}/quote/{ticker}"
@@ -89,4 +89,3 @@ def get_current_price(ticker: str) -> float:
         print(f"JSON decoding error: {e}")
     
     return None
-
