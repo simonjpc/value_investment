@@ -58,6 +58,12 @@ def compute_fp(
     return eps * ((1 + capped_growth_value) ** years) * capped_future_pe
 
 def compute_pfv(fp: float, return_value: float, years: int) -> float:
+    if not isinstance(fp, (int, float)) or not isinstance(return_value, (int, float)) or not isinstance(years, (int, float)):
+        raise TypeError("all attributes must numerical")
+    if return_value < 0:
+        raise ValueError("though numerically possible for negative values, the `return_value` attribute must be greater than or equal to zero")
+    if years <= 0:
+        raise ValueError("`years` attribute must be greater than zero")
     capped_return_value = min(RETURN_RATE_CAP, return_value)
     return fp / ((1 + capped_return_value) ** years)
 

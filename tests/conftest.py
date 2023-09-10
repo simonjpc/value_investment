@@ -1,1 +1,1 @@
-from tests.fixtures.mockups import fp_variables
+from tests.fixtures.mockups import fp_variables, pfv_variables
