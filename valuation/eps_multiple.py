@@ -42,12 +42,7 @@ def compute_fp(
 ) -> float:
     if eps is None:
         raise TypeError("all attributes must be numeric")
-    if (
-        not isinstance(eps, (int, float)) or
-        not isinstance(growth_value, (int, float)) or
-        not isinstance(years, (int, float)) or # just to treat all vars simutaneously
-        not isinstance(future_pe, (int, float))
-    ):
+    if not all(isinstance(var, (int, float)) for var in [eps, growth_value, years, future_pe]):
         raise TypeError("all attributes must be numeric")
     if years < 0 or not isinstance(years, int): # check for integer years var
         raise AttributeError("`years` attribute must be a positive integer")
@@ -58,7 +53,8 @@ def compute_fp(
     return eps * ((1 + capped_growth_value) ** years) * capped_future_pe
 
 def compute_pfv(fp: float, return_value: float, years: int) -> float:
-    if not isinstance(fp, (int, float)) or not isinstance(return_value, (int, float)) or not isinstance(years, (int, float)):
+    #if not isinstance(fp, (int, float)) or not isinstance(return_value, (int, float)) or not isinstance(years, (int, float)):
+    if not all([isinstance(var, (int,float)) for var in [fp, return_value, years]]):
         raise TypeError("all attributes must numerical")
     if return_value < 0:
         raise ValueError("though numerically possible for negative values, the `return_value` attribute must be greater than or equal to zero")
