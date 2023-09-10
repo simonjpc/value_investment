@@ -22,7 +22,7 @@ from valuation.constants import (
     FILLING_DATE_KEY,
 )
 
-from typing import Dict, Any, Tuple, List
+from typing import Dict, Any, Tuple, List, Union
 import numpy as np
 import pandas as pd
 from valuation.extractor import get_prices_in_range
@@ -40,6 +40,19 @@ def compute_fp(
     years: int,
     future_pe: float,
 ) -> float:
+    if eps is None:
+        raise TypeError("all attributes must be numeric")
+    if (
+        not isinstance(eps, (int, float)) or
+        not isinstance(growth_value, (int, float)) or
+        not isinstance(years, (int, float)) or # just to treat all vars simutaneously
+        not isinstance(future_pe, (int, float))
+    ):
+        raise TypeError("all attributes must be numeric")
+    if years < 0 or not isinstance(years, int): # check for integer years var
+        raise AttributeError("`years` attribute must be a positive integer")
+    if future_pe < 0:
+        raise AttributeError("`future_pe` attribute must be positive")
     capped_growth_value = min(GROWTH_RATE_CAP, growth_value)
     capped_future_pe = min(PE_RATIO_CAP, future_pe)
     return eps * ((1 + capped_growth_value) ** years) * capped_future_pe

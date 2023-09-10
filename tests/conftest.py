@@ -1,0 +1,1 @@
+from tests.fixtures.mockups import fp_variables
