@@ -1,6 +1,6 @@
 import pytest
 import numpy as np
-from valuation.eps_multiple import compute_fp, compute_pfv, compute_pex_value_handler
+from valuation.eps_multiple import compute_fp, compute_pfv, compute_pex_value_handler, compute_pex_value
 
 TOLERANCE = 1e-3
 
@@ -112,4 +112,56 @@ def test_compute_pex_value_handler(pex_handler_variables):
     return_value = 1000
     pfv = 34.042
     computed_pfv = compute_pex_value_handler(eps, growth_value, return_value, future_pe, years)
+    assert np.isclose(computed_pfv, pfv, atol=TOLERANCE)
+
+    """
+def compute_pex_value(
+    deco: Dict[str, Any],
+    growth_value: float,
+    return_value: float,
+    future_pe: float,
+    years: int,
+)  -> float:
+    eps = deco.get(EPS_KEY, 0)
+    pfv = compute_pex_value_handler(
+        eps, growth_value, return_value, future_pe, years
+    )
+    return pfv
+    """
+
+@pytest.mark.parametrize(
+    "deco, growth_value, return_value, future_pe, years, pfv",
+    [
+        (None, [], "", -1, -1, "`deco` attribute must be a dictionary"),
+        ({}, [], "", -1, -1, "`eps` key is expected in `deco`"),
+        ({"eps": -1}, [], "", -1, -1, "attributes `growth_value`, `return_value`, `future_pe` and `years` must all be numeric"),
+        ({"eps": -1}, 0.15, "", -1, -1, "attributes `growth_value`, `return_value`, `future_pe` and `years` must all be numeric"),
+        ({"eps": -1}, 0.15, 0.20, -1, -1, "thought numerically possible for other values, `future_pe` must be positive"),
+        ({"eps": -1}, 0.15, 0.20, 1, -1, "`years` attribute must be positive"),
+    ],
+)
+def test_compute_pex_value_crash(deco, growth_value, return_value, future_pe, years, pfv):
+    try:
+        _ = compute_pex_value(deco, growth_value, return_value, future_pe, years)
+    except (TypeError, ValueError) as err:
+        assert pfv == str(err)
+
+@pytest.mark.usefixtures("pex_variables")
+def test_compute_pex_value(pex_variables):
+    deco, growth_value, return_value, future_pe, years, pfv = (
+        pex_variables.get("deco"),
+        pex_variables.get("growth_value"),
+        pex_variables.get("return_value"),
+        pex_variables.get("future_pe"),
+        pex_variables.get("years"),
+        pex_variables.get("pfv"),
+    )
+    computed_pfv = compute_pex_value(deco, growth_value, return_value, future_pe, years)
+    assert np.isclose(computed_pfv, pfv, atol=TOLERANCE)
+
+    growth_value = 1000
+    return_value = 1000
+    pfv = -34.042
+
+    computed_pfv = compute_pex_value(deco, growth_value, return_value, future_pe, years)
     assert np.isclose(computed_pfv, pfv, atol=TOLERANCE)

@@ -77,6 +77,7 @@ def compute_pex_value_handler(
         raise ValueError("thought numerically possible for other values, `future_pe` must be positive")
     if years <= 0:
         raise ValueError("`years` attribute must be positive")
+
     fp = compute_fp(eps, growth_value, years, future_pe)
     pfv = compute_pfv(fp, return_value, years)
     return pfv
@@ -88,6 +89,12 @@ def compute_pex_value(
     future_pe: float,
     years: int,
 )  -> float:
+    if not isinstance(deco, dict):
+        raise ValueError("`deco` attribute must be a dictionary")
+    if EPS_KEY not in deco:
+        raise ValueError("`eps` key is expected in `deco`")
+    if not all([isinstance(var, (int, float)) for var in [growth_value, return_value, future_pe, years]]):
+        raise ValueError("attributes `growth_value`, `return_value`, `future_pe` and `years` must all be numeric")
     eps = deco.get(EPS_KEY, 0)
     pfv = compute_pex_value_handler(
         eps, growth_value, return_value, future_pe, years
