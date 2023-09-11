@@ -23,3 +23,17 @@ def pfv_variables():
         "pfv": 1.387,
         "years": 6,
     }
+
+@pytest.fixture
+def pex_handler_variables():
+    """
+    Input structure function compute_fp
+    """
+    return {
+        "eps": 1.5,
+        "growth_value": 0.20,
+        "return_value": 0.15,
+        "future_pe": 9,
+        "years": 6,
+        "pfv": 17.427,
+    }

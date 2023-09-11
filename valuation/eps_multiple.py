@@ -53,7 +53,6 @@ def compute_fp(
     return eps * ((1 + capped_growth_value) ** years) * capped_future_pe
 
 def compute_pfv(fp: float, return_value: float, years: int) -> float:
-    #if not isinstance(fp, (int, float)) or not isinstance(return_value, (int, float)) or not isinstance(years, (int, float)):
     if not all([isinstance(var, (int,float)) for var in [fp, return_value, years]]):
         raise TypeError("all attributes must numerical")
     if return_value < 0:
@@ -70,6 +69,14 @@ def compute_pex_value_handler(
     future_pe: float,
     years: int,
 ) -> float:
+    if not all([isinstance(var, (int, float)) for var in [eps, growth_value, return_value, future_pe, years]]):
+        raise TypeError("all attributes must be numerical")
+    if not all([var >= 0 for var in [growth_value, return_value]]):
+        raise ValueError("thought numerically possible for negative values, `growth_value` and `return_value` must be greater or equal to zero")
+    if future_pe <= 0:
+        raise ValueError("thought numerically possible for other values, `future_pe` must be positive")
+    if years <= 0:
+        raise ValueError("`years` attribute must be positive")
     fp = compute_fp(eps, growth_value, years, future_pe)
     pfv = compute_pfv(fp, return_value, years)
     return pfv
