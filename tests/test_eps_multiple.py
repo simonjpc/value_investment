@@ -9,6 +9,7 @@ from valuation.eps_multiple import (
     compute_tangible_book_value_ps,
     compute_discounted_tangible_book_value,
     compute_discounted_tangible_book_value_ps,
+    compute_pe_ratio,
 )
 from valuation.constants import TOTAL_ASSETS_KEY, SHARES_OUTS_KEY, CURRENT_ASSETS_FACTORS
 
@@ -263,3 +264,34 @@ def test_compute_discounted_tangible_book_value_ps(compute_dct_tangible_bvps, co
         compute_dct_tangible_bvps,
     )
     assert np.isclose(computed_dct_tangible_bvps, expected_dct_tangible_bvps, atol=TOLERANCE)
+
+"""def compute_pe_ratio(deco: Dict[str, Any]) -> float:
+    pps = deco.get(REPORTING_DATE_PRICE_COL, 1e-6)
+    eps = deco.get(EPS_KEY, 0)
+    return eps/pps"""
+
+@pytest.mark.parametrize(
+    "deco, pe_ratio",
+    [
+        (None, "`deco` attribute must be a dictionary"),
+    ]
+)
+def test_compute_pe_ratio_crash(deco, pe_ratio):
+    try:
+        _ = compute_pe_ratio(deco)
+    except AttributeError as err:
+        assert pe_ratio == str(err)
+
+@pytest.mark.usefixtures("pe_ratio_variables")
+def test_compute_pe_ratio(pe_ratio_variables):
+    expected_pe_ratio = pe_ratio_variables.get("pe_ratio")
+    computed_pe_ratio = compute_pe_ratio(pe_ratio_variables)
+    assert np.isclose(expected_pe_ratio, computed_pe_ratio)
+
+    eps = pe_ratio_variables.get("eps")
+    pe_ratio_variables["eps"] = 0
+    low_pe_ratio_thr = 100000
+    computed_pe_ratio = compute_pe_ratio(pe_ratio_variables)
+    assert computed_pe_ratio > low_pe_ratio_thr
+    pe_ratio_variables["eps"] = eps
+

@@ -118,3 +118,11 @@ def compute_dct_tangible_bvps():
         "dct_tangible_bv": -1,
         "dct_tangible_bvps": 1.007,
     }
+
+@pytest.fixture
+def pe_ratio_variables():
+    return {
+        "reporting_date_price": 6.28,
+        "eps": 1.77,
+        "pe_ratio": 3.548,
+    }

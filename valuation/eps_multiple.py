@@ -150,9 +150,13 @@ def compute_discounted_tangible_book_value_ps(deco: Dict[str, Any]) -> float:
     return tangible_book_value / nb_outs_shares
 
 def compute_pe_ratio(deco: Dict[str, Any]) -> float:
+    if not isinstance(deco, dict):
+        raise AttributeError("`deco` attribute must be a dictionary")
+    pps = deco.get(REPORTING_DATE_PRICE_COL, 0)
     eps = deco.get(EPS_KEY, 0)
-    pps = deco.get(REPORTING_DATE_PRICE_COL, 1e-5)
-    return eps/pps
+    if eps == 0:
+        eps = 1e-6
+    return pps/eps
 
 def compute_de_ratio1(deco: Dict[str, Any]) -> float:
     return deco.get("totalLiabilities", 1e6) / deco.get("totalStockholdersEquity", 1e-6)
