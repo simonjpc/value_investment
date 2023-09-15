@@ -3,7 +3,7 @@ import pytest
 @pytest.fixture
 def fp_variables():
     """
-    Input structure function compute_fp
+    Input for function compute_fp
     """
     return {
         "eps": 1.5,
@@ -15,7 +15,7 @@ def fp_variables():
 
 @pytest.fixture
 def pfv_variables():
-    """Input structure function compute_pfv
+    """Input for function compute_pfv
     """
     return {
         "fp": 3.21, 
@@ -27,7 +27,7 @@ def pfv_variables():
 @pytest.fixture
 def pex_handler_variables():
     """
-    Input structure function compute_pex_value_handler
+    Input for function compute_pex_value_handler
     """
     return {
         "eps": 1.5,
@@ -41,7 +41,7 @@ def pex_handler_variables():
 @pytest.fixture
 def pex_variables():
     """
-    Input structure function compute_pex_value
+    Input for function compute_pex_value
     """
     return {
         "deco": {"eps": -1.5},
@@ -50,4 +50,71 @@ def pex_variables():
         "future_pe": 9,
         "years": 6,
         "pfv": -17.427,
+    }
+
+@pytest.fixture
+def tangible_bv_variables():
+    """
+    Input for function compute_tangible_book_value
+    """
+    return {
+        "goodwill": 1340700,
+        "intangibleAssets": 987300,
+        "goodwillAndIntangibleAssets": 2328000,
+        "totalAssets": 7650000,
+        "totalLiabilities": 1890000,
+        "tangible_bv": 3432000,
+    }
+
+@pytest.fixture
+def compute_tangible_bvps():
+    """
+    Input for function compute_tangible_book_value_ps
+    """
+    return {
+        "goodwill": 1340700,
+        "intangibleAssets": 987300,
+        "goodwillAndIntangibleAssets": 2328000,
+        "totalAssets": 7650000,
+        "totalLiabilities": 1890000,
+        "weightedAverageShsOutDil": 3150000,
+        "tangible_bv": 3432000,
+        "tangible_bvps": 1.089,
+    }
+
+@pytest.fixture
+def dct_tangible_bv_variables():
+    """
+    Input for function compute_discounted_tangible_book_value
+    """
+    return {
+        "goodwill": 1340700,
+        "intangibleAssets": 987300,
+        "goodwillAndIntangibleAssets": 2328000,
+        "totalAssets": 7650000,
+        "totalLiabilities": 1890000,
+        "netReceivables": 400000,
+        "inventory": 200000,
+        "propertyPlantEquipmentNet": 300000,
+        "dct_tangible_bv": 3173000,
+    }
+        
+
+@pytest.fixture
+def compute_dct_tangible_bvps():
+    """
+    Input for function compute_discounted_tangible_book_value_ps
+    """
+    return {
+        "goodwill": 1340700,
+        "intangibleAssets": 987300,
+        "goodwillAndIntangibleAssets": 2328000,
+        "totalAssets": 7650000,
+        "totalLiabilities": 1890000,
+        "netReceivables": 400000,
+        "inventory": 200000,
+        "propertyPlantEquipmentNet": 300000,
+        "weightedAverageShsOutDil": 3150000,
+        "dct_tangible_bv": -1,
+        "dct_tangible_bvps": 1.007,
     }

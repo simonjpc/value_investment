@@ -1,6 +1,16 @@
 import pytest
 import numpy as np
-from valuation.eps_multiple import compute_fp, compute_pfv, compute_pex_value_handler, compute_pex_value
+from valuation.eps_multiple import (
+    compute_fp,
+    compute_pfv,
+    compute_pex_value_handler,
+    compute_pex_value,
+    compute_tangible_book_value,
+    compute_tangible_book_value_ps,
+    compute_discounted_tangible_book_value,
+    compute_discounted_tangible_book_value_ps,
+)
+from valuation.constants import TOTAL_ASSETS_KEY, SHARES_OUTS_KEY, CURRENT_ASSETS_FACTORS
 
 TOLERANCE = 1e-3
 
@@ -65,18 +75,6 @@ def test_compute_pfv(pfv_variables):
     computed_pfv = compute_pfv(fp, return_value, years)
     assert np.isclose(computed_pfv, pfv, atol=TOLERANCE)
 
-
-"""def compute_pex_value_handler(
-    eps: float,
-    growth_value: float,
-    return_value: float,
-    future_pe: float,
-    years: int,
-) -> float:
-    fp = compute_fp(eps, growth_value, years, future_pe)
-    pfv = compute_pfv(fp, return_value, years)
-    return pfv"""
-
 @pytest.mark.parametrize(
     "eps, growth_value, return_value, future_pe, years, pfv",
     [
@@ -114,21 +112,6 @@ def test_compute_pex_value_handler(pex_handler_variables):
     computed_pfv = compute_pex_value_handler(eps, growth_value, return_value, future_pe, years)
     assert np.isclose(computed_pfv, pfv, atol=TOLERANCE)
 
-    """
-def compute_pex_value(
-    deco: Dict[str, Any],
-    growth_value: float,
-    return_value: float,
-    future_pe: float,
-    years: int,
-)  -> float:
-    eps = deco.get(EPS_KEY, 0)
-    pfv = compute_pex_value_handler(
-        eps, growth_value, return_value, future_pe, years
-    )
-    return pfv
-    """
-
 @pytest.mark.parametrize(
     "deco, growth_value, return_value, future_pe, years, pfv",
     [
@@ -165,3 +148,118 @@ def test_compute_pex_value(pex_variables):
 
     computed_pfv = compute_pex_value(deco, growth_value, return_value, future_pe, years)
     assert np.isclose(computed_pfv, pfv, atol=TOLERANCE)
+
+@pytest.mark.parametrize(
+    "deco, tangible_bv",
+    [
+        (None, "`deco` attribute must be a dictionary"),
+        ([], "`deco` attribute must be a dictionary"),
+    ]
+)
+def test_compute_tangible_book_value_crash(deco, tangible_bv):
+    try:
+        _ = compute_tangible_book_value(deco)
+    except (AttributeError) as err:
+        assert tangible_bv == str(err)
+
+@pytest.mark.usefixtures("tangible_bv_variables")
+def test_compute_tangible_book_value(tangible_bv_variables):
+    assert compute_tangible_book_value({}) == 0
+
+    computed_tbv = compute_tangible_book_value(tangible_bv_variables)
+    expected_tbv = tangible_bv_variables.get("tangible_bv")
+    assert np.isclose(computed_tbv, expected_tbv, atol=TOLERANCE)
+
+    tangible_bv_variables[TOTAL_ASSETS_KEY] = 1
+    computed_tbv = compute_tangible_book_value(tangible_bv_variables)
+    expected_tbv = -4217999
+    assert np.isclose(computed_tbv, expected_tbv, atol=TOLERANCE)
+
+@pytest.mark.parametrize(
+    "deco, tangible_bvps",
+    [
+        (None, "`deco` attribute must be a dictionary"),
+        ([], "`deco` attribute must be a dictionary"),
+    ]
+)
+def test_compute_tangible_book_value_ps_crash(deco, tangible_bvps):
+    try:
+        _ = compute_tangible_book_value_ps(deco)
+    except AttributeError as err:
+        assert tangible_bvps == str(err)
+
+@pytest.mark.usefixtures("compute_tangible_bvps")
+def test_compute_tangible_book_value_ps(compute_tangible_bvps):
+    expected_tangible_bvps = compute_tangible_bvps.get("tangible_bvps")
+    computed_tangible_bvps = compute_tangible_book_value_ps(compute_tangible_bvps)
+    assert np.isclose(expected_tangible_bvps, computed_tangible_bvps, atol=TOLERANCE)
+
+    shares_outs = compute_tangible_bvps.get(SHARES_OUTS_KEY)
+    compute_tangible_bvps[SHARES_OUTS_KEY] = 0
+    expected_tangible_bvps = compute_tangible_bvps.get("tangible_bv") / 1e-6
+    computed_tangible_bvps = compute_tangible_book_value_ps(compute_tangible_bvps)
+    assert np.isclose(expected_tangible_bvps, computed_tangible_bvps)
+    compute_tangible_bvps[SHARES_OUTS_KEY] = shares_outs
+
+    compute_tangible_bvps[TOTAL_ASSETS_KEY] = 1
+    expected_tangible_bvps = -1.339
+    computed_tangible_bvps = compute_tangible_book_value_ps(compute_tangible_bvps)
+    assert np.isclose(expected_tangible_bvps, computed_tangible_bvps, atol=TOLERANCE)
+
+@pytest.mark.parametrize(
+    "deco, dct_tangible_bv",
+    [
+        (None, "`deco` attribute must be a dictionary"),
+        ([], "`deco` attribute must be a dictionary"),
+    ]
+)
+def test_compute_discounted_tangible_book_value_crash(deco, dct_tangible_bv):
+    try:
+        _ = compute_discounted_tangible_book_value(deco)
+    except AttributeError as err:
+        assert dct_tangible_bv == str(err)
+
+@pytest.mark.usefixtures("dct_tangible_bv_variables", "tangible_bv_variables")
+def test_compute_discounted_tangible_book_value(dct_tangible_bv_variables, tangible_bv_variables):
+    expected_dct_tangible_bv = dct_tangible_bv_variables.get("dct_tangible_bv")
+    computed_dct_tangible_bv = compute_discounted_tangible_book_value(dct_tangible_bv_variables)
+    assert np.isclose(expected_dct_tangible_bv, computed_dct_tangible_bv, atol=TOLERANCE)
+
+    tangible_bv = tangible_bv_variables.get("tangible_bv")
+    assert tangible_bv >= computed_dct_tangible_bv
+
+    dct_tangible_bv_variables[TOTAL_ASSETS_KEY] = 1
+    expected_dct_tangible_bv = -4476999
+    computed_dct_tangible_bv = compute_discounted_tangible_book_value(dct_tangible_bv_variables)
+    assert np.isclose(expected_dct_tangible_bv, computed_dct_tangible_bv, atol=TOLERANCE)
+
+@pytest.mark.parametrize(
+    "deco, dct_tangible_bvps",
+    [
+        (None, "`deco` attribute must be a dictionary"),
+        ([], "`deco` attribute must be a dictionary"),
+    ]
+)
+def test_compute_discounted_tangible_book_value_ps_crash(deco, dct_tangible_bvps):
+    try:
+        _ = compute_discounted_tangible_book_value_ps(deco)
+    except AttributeError as err:
+        assert dct_tangible_bvps == str(err)
+
+@pytest.mark.usefixtures("compute_dct_tangible_bvps", "compute_tangible_bvps")
+def test_compute_discounted_tangible_book_value_ps(compute_dct_tangible_bvps, compute_tangible_bvps):
+    computed_dct_tangible_bvps = compute_discounted_tangible_book_value_ps(
+        compute_dct_tangible_bvps,
+    )
+    expected_dct_tangible_bvps = compute_dct_tangible_bvps.get("dct_tangible_bvps")
+    assert np.isclose(computed_dct_tangible_bvps, expected_dct_tangible_bvps, atol=TOLERANCE)
+    
+    expected_tangible_bvps = compute_tangible_bvps.get("tangible_bvps")
+    assert computed_dct_tangible_bvps <= expected_tangible_bvps
+
+    compute_dct_tangible_bvps[TOTAL_ASSETS_KEY] = 1
+    expected_dct_tangible_bvps = -1.421
+    computed_dct_tangible_bvps = compute_discounted_tangible_book_value_ps(
+        compute_dct_tangible_bvps,
+    )
+    assert np.isclose(computed_dct_tangible_bvps, expected_dct_tangible_bvps, atol=TOLERANCE)

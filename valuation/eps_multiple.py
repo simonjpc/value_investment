@@ -102,6 +102,8 @@ def compute_pex_value(
     return pfv
 
 def compute_tangible_book_value(deco: Dict[str, Any]) -> float:
+    if not isinstance(deco, dict):
+        raise AttributeError("`deco` attribute must be a dictionary")
     intangible_assets = deco.get(
         GOODWILL_AND_INTANGILE_ASSETS_KEY,
         deco.get(GOODWILL_KEY, 0) + deco.get(INTANGIBLE_ASSETS_KEY, 0)
@@ -115,10 +117,13 @@ def compute_tangible_book_value(deco: Dict[str, Any]) -> float:
 def compute_tangible_book_value_ps(deco: Dict[str, Any]) -> float:
     tangible_book_value = compute_tangible_book_value(deco)
     nb_outs_shares = deco.get(SHARES_OUTS_KEY, np.Inf)
+    nb_outs_shares = max(nb_outs_shares, 1e-6)
     return tangible_book_value / nb_outs_shares
 
 
 def compute_discounted_tangible_book_value(deco: Dict[str, Any]) -> float:
+    if not isinstance(deco, dict):
+        raise AttributeError("`deco` attribute must be a dictionary")
     intangible_assets = deco.get(
         GOODWILL_AND_INTANGILE_ASSETS_KEY,
         deco.get(GOODWILL_KEY, 0) + deco.get(INTANGIBLE_ASSETS_KEY, 0)
@@ -139,11 +144,8 @@ def compute_discounted_tangible_book_value(deco: Dict[str, Any]) -> float:
     discounted_tangible_book_value = discounted_tangible_assets - total_liab
     return discounted_tangible_book_value
 
-def compute_discounted_tangible_book_value_ps(
-    deco: Dict[str, Any],
-    factors_deco: Dict[str, Any],
-) -> float:
-    tangible_book_value = compute_discounted_tangible_book_value(deco, factors_deco)
+def compute_discounted_tangible_book_value_ps(deco: Dict[str, Any]) -> float:
+    tangible_book_value = compute_discounted_tangible_book_value(deco)
     nb_outs_shares = deco.get(SHARES_OUTS_KEY, np.Inf)
     return tangible_book_value / nb_outs_shares
 
