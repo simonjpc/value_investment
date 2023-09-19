@@ -265,11 +265,6 @@ def test_compute_discounted_tangible_book_value_ps(compute_dct_tangible_bvps, co
     )
     assert np.isclose(computed_dct_tangible_bvps, expected_dct_tangible_bvps, atol=TOLERANCE)
 
-"""def compute_pe_ratio(deco: Dict[str, Any]) -> float:
-    pps = deco.get(REPORTING_DATE_PRICE_COL, 1e-6)
-    eps = deco.get(EPS_KEY, 0)
-    return eps/pps"""
-
 @pytest.mark.parametrize(
     "deco, pe_ratio",
     [
