@@ -22,7 +22,7 @@ from valuation.constants import (
     FILLING_DATE_KEY,
 )
 
-from typing import Dict, Any, Tuple, List
+from typing import Dict, Any, Tuple, List, Union
 import numpy as np
 import pandas as pd
 from valuation.extractor import get_prices_in_range
@@ -40,11 +40,25 @@ def compute_fp(
     years: int,
     future_pe: float,
 ) -> float:
+    if eps is None:
+        raise TypeError("all attributes must be numeric")
+    if not all(isinstance(var, (int, float)) for var in [eps, growth_value, years, future_pe]):
+        raise TypeError("all attributes must be numeric")
+    if years < 0 or not isinstance(years, int): # check for integer years var
+        raise AttributeError("`years` attribute must be a positive integer")
+    if future_pe < 0:
+        raise AttributeError("`future_pe` attribute must be positive")
     capped_growth_value = min(GROWTH_RATE_CAP, growth_value)
     capped_future_pe = min(PE_RATIO_CAP, future_pe)
     return eps * ((1 + capped_growth_value) ** years) * capped_future_pe
 
 def compute_pfv(fp: float, return_value: float, years: int) -> float:
+    if not all([isinstance(var, (int,float)) for var in [fp, return_value, years]]):
+        raise TypeError("all attributes must numerical")
+    if return_value < 0:
+        raise ValueError("though numerically possible for negative values, the `return_value` attribute must be greater than or equal to zero")
+    if years <= 0:
+        raise ValueError("`years` attribute must be greater than zero")
     capped_return_value = min(RETURN_RATE_CAP, return_value)
     return fp / ((1 + capped_return_value) ** years)
 
@@ -55,6 +69,15 @@ def compute_pex_value_handler(
     future_pe: float,
     years: int,
 ) -> float:
+    if not all([isinstance(var, (int, float)) for var in [eps, growth_value, return_value, future_pe, years]]):
+        raise TypeError("all attributes must be numerical")
+    if not all([var >= 0 for var in [growth_value, return_value]]):
+        raise ValueError("thought numerically possible for negative values, `growth_value` and `return_value` must be greater or equal to zero")
+    if future_pe <= 0:
+        raise ValueError("thought numerically possible for other values, `future_pe` must be positive")
+    if years <= 0:
+        raise ValueError("`years` attribute must be positive")
+
     fp = compute_fp(eps, growth_value, years, future_pe)
     pfv = compute_pfv(fp, return_value, years)
     return pfv
@@ -66,6 +89,12 @@ def compute_pex_value(
     future_pe: float,
     years: int,
 )  -> float:
+    if not isinstance(deco, dict):
+        raise ValueError("`deco` attribute must be a dictionary")
+    if EPS_KEY not in deco:
+        raise ValueError("`eps` key is expected in `deco`")
+    if not all([isinstance(var, (int, float)) for var in [growth_value, return_value, future_pe, years]]):
+        raise ValueError("attributes `growth_value`, `return_value`, `future_pe` and `years` must all be numeric")
     eps = deco.get(EPS_KEY, 0)
     pfv = compute_pex_value_handler(
         eps, growth_value, return_value, future_pe, years
@@ -73,6 +102,8 @@ def compute_pex_value(
     return pfv
 
 def compute_tangible_book_value(deco: Dict[str, Any]) -> float:
+    if not isinstance(deco, dict):
+        raise AttributeError("`deco` attribute must be a dictionary")
     intangible_assets = deco.get(
         GOODWILL_AND_INTANGILE_ASSETS_KEY,
         deco.get(GOODWILL_KEY, 0) + deco.get(INTANGIBLE_ASSETS_KEY, 0)
@@ -86,10 +117,13 @@ def compute_tangible_book_value(deco: Dict[str, Any]) -> float:
 def compute_tangible_book_value_ps(deco: Dict[str, Any]) -> float:
     tangible_book_value = compute_tangible_book_value(deco)
     nb_outs_shares = deco.get(SHARES_OUTS_KEY, np.Inf)
+    nb_outs_shares = max(nb_outs_shares, 1e-6)
     return tangible_book_value / nb_outs_shares
 
 
 def compute_discounted_tangible_book_value(deco: Dict[str, Any]) -> float:
+    if not isinstance(deco, dict):
+        raise AttributeError("`deco` attribute must be a dictionary")
     intangible_assets = deco.get(
         GOODWILL_AND_INTANGILE_ASSETS_KEY,
         deco.get(GOODWILL_KEY, 0) + deco.get(INTANGIBLE_ASSETS_KEY, 0)
@@ -110,18 +144,19 @@ def compute_discounted_tangible_book_value(deco: Dict[str, Any]) -> float:
     discounted_tangible_book_value = discounted_tangible_assets - total_liab
     return discounted_tangible_book_value
 
-def compute_discounted_tangible_book_value_ps(
-    deco: Dict[str, Any],
-    factors_deco: Dict[str, Any],
-) -> float:
-    tangible_book_value = compute_discounted_tangible_book_value(deco, factors_deco)
+def compute_discounted_tangible_book_value_ps(deco: Dict[str, Any]) -> float:
+    tangible_book_value = compute_discounted_tangible_book_value(deco)
     nb_outs_shares = deco.get(SHARES_OUTS_KEY, np.Inf)
     return tangible_book_value / nb_outs_shares
 
 def compute_pe_ratio(deco: Dict[str, Any]) -> float:
+    if not isinstance(deco, dict):
+        raise AttributeError("`deco` attribute must be a dictionary")
+    pps = deco.get(REPORTING_DATE_PRICE_COL, 0)
     eps = deco.get(EPS_KEY, 0)
-    pps = deco.get(REPORTING_DATE_PRICE_COL, 1e-5)
-    return eps/pps
+    if eps == 0:
+        eps = 1e-6
+    return pps/eps
 
 def compute_de_ratio1(deco: Dict[str, Any]) -> float:
     return deco.get("totalLiabilities", 1e6) / deco.get("totalStockholdersEquity", 1e-6)
