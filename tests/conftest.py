@@ -8,4 +8,7 @@ from tests.fixtures.mockups import (
     dct_tangible_bv_variables,
     compute_dct_tangible_bvps,
     pe_ratio_variables,
+    de_ratio_variables,
+    date_range_variables,
+    reporting_date_variables,
 )

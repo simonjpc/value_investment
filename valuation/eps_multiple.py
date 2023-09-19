@@ -20,6 +20,7 @@ from valuation.constants import (
     EXPECTED_OBLIGATIONS,
     STOCKHOLDERS_EQUITY_KEY,
     FILLING_DATE_KEY,
+    DATE_KEY,
 )
 
 from typing import Dict, Any, Tuple, List, Union
@@ -168,24 +169,43 @@ def compute_de_ratio3(deco) -> float:
     return deco.get("totalDebt", 1e6) / deco.get("totalStockholdersEquity", 1e-6)
 
 def compute_de_ratio(deco: Dict[str, Any], obligation_type: str) -> float:
+    if not isinstance(deco, dict):
+        raise AttributeError("`deco` attribute must be a dictionary")
+    if not isinstance(obligation_type, str):
+        raise AttributeError("`obligation_type` attribute must be a string")
     if obligation_type not in EXPECTED_OBLIGATIONS:
         raise AttributeError(
-            f"invalid `obligation_type` attribute. The accepted values are {EXPECTED_OBLIGATIONS}"
+            f"`obligation_type` attribute must be one of the following: {EXPECTED_OBLIGATIONS}"
         )
-    return deco.get(obligation_type, 1e6) / deco.get(STOCKHOLDERS_EQUITY_KEY, 1e-6)
+    return deco.get(obligation_type, 1e6) / max(1e-6, deco.get(STOCKHOLDERS_EQUITY_KEY, 1e-6))
 
 def get_date_range(
     date: pd.Timestamp, window_start_offset: int = 30, window_end_offset: int = 46
 ) -> Tuple[str, str]:
+    if not isinstance(date, pd.Timestamp):
+        raise AttributeError("`date` attribute must be a pandas timestamp")
+    if not all([isinstance(var, (int, float)) for var in (window_start_offset, window_end_offset)]):
+        raise AttributeError("both `window_start_offset` & `window_end_offset` must be positive integers")
+    if not all([var >= 0 for var in (window_start_offset, window_end_offset)]):
+        raise AttributeError("both `window_start_offset` & `window_end_offset` must be positive integers")
+    if window_end_offset < window_start_offset:
+        raise ValueError("`window_end_offset` must be greater than or equal to `window_start_offset`")
     window_start = (date + pd.DateOffset(days=window_start_offset)).date()
     window_end = (date + pd.DateOffset(days=window_end_offset)).date()
     return str(window_start), str(window_end)
 
 def get_reporting_window(deco):
+    if not isinstance(deco, dict):
+        raise AttributeError("`deco attribute must be a dictionary`")
     filling_date = deco.get(FILLING_DATE_KEY, None)
     
     if filling_date is None:
-        reporting_start, reporting_end = get_date_range(filling_date)
+        date = deco.get(DATE_KEY, None)
+        if date is not None:
+            date = pd.Timestamp(date)
+            reporting_start, reporting_end = get_date_range(date)
+        else:
+            return None, None, filling_date is not None
     else:
         reporting_start = filling_date
         reporting_datetime = pd.to_datetime(filling_date) + pd.DateOffset(days=3)
@@ -215,6 +235,7 @@ def compute_price_at_reporting_date(prices: List[str], filling_date_flag: bool) 
 
 # DEPRICATED
 def compute_price_at_reporting_date_OLD(deco, ticker):
+    print(deco)
     filling_date = deco.get(FILLING_DATE_KEY, None)
     
     if filling_date is None:

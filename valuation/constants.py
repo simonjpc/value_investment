@@ -14,6 +14,7 @@ TOTAL_CURR_LIAB_KEY = "totalCurrentLiabilities"
 STOCKHOLDERS_EQUITY_KEY = "totalStockholdersEquity"
 TOTAL_DEBT_KEY = "totalDebt"
 EXPECTED_OBLIGATIONS = (TOTAL_CURR_LIAB_KEY, TOTAL_LIAB_KEY, TOTAL_DEBT_KEY)
+DATE_KEY = "date"
 FILLING_DATE_KEY = "fillingDate"
 HIST_PRICES_KEY = "historical"
 

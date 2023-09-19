@@ -1,4 +1,5 @@
 import pytest
+import pandas as pd
 
 @pytest.fixture
 def fp_variables():
@@ -125,4 +126,29 @@ def pe_ratio_variables():
         "reporting_date_price": 6.28,
         "eps": 1.77,
         "pe_ratio": 3.548,
+    }
+
+@pytest.fixture
+def de_ratio_variables():
+    return {
+        "totalLiabilities": 3702000,
+        "totalCurrentLiabilities": 979000,
+        "totalDebt": 614000,
+        "totalStockholdersEquity": 7710000,
+    }
+
+@pytest.fixture
+def date_range_variables():
+    return {
+        "date": pd.Timestamp("2022-09-19"),
+        "window_start_offset": 30,
+        "window_end_offset": 46,
+    }
+
+@pytest.fixture
+def reporting_date_variables():
+    return {
+        "fillingDate": "2022-09-19",
+        "date": "2022-08-10",
+        "window": ("2022-09-19", "2022-09-22"),
     }
