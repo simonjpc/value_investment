@@ -4,7 +4,7 @@ Python version 3.10.12
 
 ### Next steps
 
-These are the list of tasks to do that do not depend on any other task :
+These is the list of tasks to do that do not depend on any other task :
 
 - Create script where the calculations of the EPS X valuation is done using the functions from `eps_multiple.py`.
 - Code unit tests for the functions of script `extractor.py`. Here some mockup will be needed.
