@@ -1,5 +1,6 @@
 import pytest
 import numpy as np
+import pandas as pd
 from valuation.eps_multiple import (
     compute_fp,
     compute_pfv,
@@ -10,8 +11,21 @@ from valuation.eps_multiple import (
     compute_discounted_tangible_book_value,
     compute_discounted_tangible_book_value_ps,
     compute_pe_ratio,
+    compute_de_ratio,
+    get_date_range,
+    get_reporting_window,
+    get_price_history,
+    compute_price_at_reporting_date,
 )
-from valuation.constants import TOTAL_ASSETS_KEY, SHARES_OUTS_KEY, CURRENT_ASSETS_FACTORS
+from valuation.constants import (
+    TOTAL_ASSETS_KEY,
+    SHARES_OUTS_KEY,
+    CURRENT_ASSETS_FACTORS,
+    EXPECTED_OBLIGATIONS,
+    TOTAL_LIAB_KEY,
+    STOCKHOLDERS_EQUITY_KEY,
+    DATE_KEY,
+)
 
 TOLERANCE = 1e-3
 
@@ -290,3 +304,221 @@ def test_compute_pe_ratio(pe_ratio_variables):
     assert computed_pe_ratio > low_pe_ratio_thr
     pe_ratio_variables["eps"] = eps
 
+
+"""def compute_de_ratio(deco: Dict[str, Any], obligation_type: str) -> float:
+    if obligation_type not in EXPECTED_OBLIGATIONS:
+        raise AttributeError(
+            f"invalid `obligation_type` attribute. The accepted values are {EXPECTED_OBLIGATIONS}"
+        )
+    return deco.get(obligation_type, 1e6) / deco.get(STOCKHOLDERS_EQUITY_KEY, 1e-6)"""
+
+@pytest.mark.parametrize(
+    "deco, obligation_type, ratio",
+    [
+        (None, "total", "`deco` attribute must be a dictionary"),
+        ({}, [], "`obligation_type` attribute must be a string"),
+        ({}, "total", f"`obligation_type` attribute must be one of the following: {EXPECTED_OBLIGATIONS}"),
+    ]
+)
+def test_compute_de_ratio_crash(deco, obligation_type, ratio):
+    try:
+        _ = compute_de_ratio(deco, obligation_type)
+    except AttributeError as err:
+        assert ratio == str(err)
+
+@pytest.mark.usefixtures("de_ratio_variables")
+def test_compute_de_ratio(de_ratio_variables):
+    expected_de_ratio = de_ratio_variables.get(TOTAL_LIAB_KEY) / de_ratio_variables.get(STOCKHOLDERS_EQUITY_KEY)
+    computed_de_ratio = compute_de_ratio(de_ratio_variables, "totalLiabilities")
+    assert np.isclose(expected_de_ratio, computed_de_ratio, atol=TOLERANCE)
+
+    de_ratio_variables[STOCKHOLDERS_EQUITY_KEY] = 0
+    expected_de_ratio = 3702e9
+    computed_de_ratio = compute_de_ratio(de_ratio_variables, "totalLiabilities")
+    assert np.isclose(expected_de_ratio, computed_de_ratio, atol=TOLERANCE)
+    
+"""def get_date_range(
+    date: pd.Timestamp, window_start_offset: int = 30, window_end_offset: int = 46
+) -> Tuple[str, str]:
+    window_start = (date + pd.DateOffset(days=window_start_offset)).date()
+    window_end = (date + pd.DateOffset(days=window_end_offset)).date()
+    return str(window_start), str(window_end)"""
+
+@pytest.mark.parametrize(
+    "date, window_start_offset, window_end_offset, window",
+    [
+        (None, None, None, "`date` attribute must be a pandas timestamp"),
+        (pd.Timestamp("19-09-2022"), None, None, "both `window_start_offset` & `window_end_offset` must be positive integers"),
+        (pd.Timestamp("19-09-2022"), 3, None, "both `window_start_offset` & `window_end_offset` must be positive integers"),
+        (pd.Timestamp("19-09-2022"), 3, -1, "both `window_start_offset` & `window_end_offset` must be positive integers"),
+        (pd.Timestamp("19-09-2022"), 30, 15, "`window_end_offset` must be greater than or equal to `window_start_offset`"),
+    ]
+)
+def test_get_date_range_crash(date, window_start_offset, window_end_offset, window):
+    try:
+        _ = get_date_range(date, window_start_offset, window_end_offset)
+    except (AttributeError, ValueError) as err:
+        assert window == str(err)
+
+@pytest.mark.usefixtures("date_range_variables")
+def test_get_date_range(date_range_variables):
+    date, start, end = (
+        date_range_variables["date"],
+        date_range_variables["window_start_offset"],
+        date_range_variables["window_end_offset"],
+    )
+    expected_range = (
+        str(pd.Timestamp("2022-10-19").date()),
+        str(pd.Timestamp("2022-11-04").date()),
+    )
+    computed_range = get_date_range(date, start, end)
+    assert expected_range == computed_range
+
+"""
+def get_reporting_window(deco):
+    filling_date = deco.get(FILLING_DATE_KEY, None)
+    
+    if filling_date is None:
+        reporting_start, reporting_end = get_date_range(filling_date)
+    else:
+        reporting_start = filling_date
+        reporting_datetime = pd.to_datetime(filling_date) + pd.DateOffset(days=3)
+        reporting_end = str(reporting_datetime.date())
+    return reporting_start, reporting_end, filling_date is not None
+"""
+
+@pytest.mark.parametrize(
+    "deco, window_and_date",
+    [
+        (None, "`deco attribute must be a dictionary`"),
+        ([], "`deco attribute must be a dictionary`"),
+    ]
+)
+def test_get_reporting_window_crash(deco, window_and_date):
+    try:
+        _ = get_reporting_window(deco)
+    except AttributeError as err:
+        assert window_and_date == str(err)
+
+@pytest.mark.usefixtures("reporting_date_variables")
+def test_get_reporting_window(reporting_date_variables):
+    expected_window = reporting_date_variables.get("window")
+    expected_output = (expected_window[0], expected_window[1], True)
+    computed_output = get_reporting_window(reporting_date_variables)
+    assert expected_output == computed_output
+
+    reporting_date_variables["fillingDate"] = None
+    expected_output = ("2022-09-09", "2022-09-25", False)
+    computed_output = get_reporting_window(reporting_date_variables)
+    assert expected_output == computed_output
+
+    reporting_date_variables[DATE_KEY] = None
+    expected_output = (None, None, False)
+    computed_output = get_reporting_window(reporting_date_variables)
+    assert expected_output == computed_output
+
+"""
+def get_price_history(deco: Dict[str, Any]) -> List[Dict[str, Any]]:
+    return deco.get("historical", [])
+"""
+
+@pytest.mark.parametrize(
+    "deco, price_history",
+    [
+        (None, "`deco` attribute must be a dictionary"),
+        ([], "`deco` attribute must be a dictionary"),
+    ]
+)
+def test_get_price_history_crash(deco, price_history):
+    try:
+        _ = get_price_history(deco)
+    except AttributeError as err:
+        assert price_history == str(err)
+
+@pytest.mark.usefixtures("price_hist_variables")
+def test_get_price_history(price_hist_variables):
+    expected_price_hist = price_hist_variables.get("historical")
+    computed_price_hist = get_price_history(price_hist_variables)
+    assert expected_price_hist == computed_price_hist
+
+    price_hist_variables = {}
+    expected_price_hist = []
+    computed_price_hist = get_price_history(price_hist_variables)
+    assert expected_price_hist == computed_price_hist
+
+"""
+def compute_price_at_reporting_date(prices: List[str], filling_date_flag: bool, key: str = "low") -> float:
+    if filling_date_flag is False:
+        range_price_lows = get_key_from_iterator(prices, key)
+    else:
+        range_price_lows = get_key_from_iterator(prices[:2], key)
+    if range_price_lows:
+        avg_price_at_report = compute_avg_value(range_price_lows)
+    else:
+        avg_price_at_report = np.Inf
+    return avg_price_at_report
+"""
+
+@pytest.mark.parametrize(
+    "prices, filling_date_flag, key, avg_price_at_report",
+    [
+        (None, None, None, "`prices` attribute must be a list"),
+        ([], None, None, "`filling_date_flag` attribute must be boolean"),
+        ([], True, None, "`key` attribute must be a string"),
+    ]
+)
+def test_compute_price_at_reporting_date_crash(prices, filling_date_flag, key, avg_price_at_report):
+    try:
+        _ = compute_price_at_reporting_date(prices=prices, filling_date_flag=filling_date_flag, key=key)
+    except AttributeError as err:
+        assert avg_price_at_report == str(err)
+
+@pytest.mark.usefixtures("reporting_date_price_variables")
+def test_compute_price_at_reporting_date(reporting_date_price_variables):
+    expected_prices = reporting_date_price_variables.get("low_prices_false")
+    computed_prices = compute_price_at_reporting_date(
+        prices=reporting_date_price_variables.get("prices_content"),
+        filling_date_flag=False,
+        key="low"
+        )
+    assert np.isclose(expected_prices, computed_prices, atol=TOLERANCE)
+
+    expected_prices = reporting_date_price_variables.get("low_prices_true")
+    computed_prices = compute_price_at_reporting_date(
+        prices=reporting_date_price_variables.get("prices_content"),
+        filling_date_flag=True,
+        key="low"
+        )
+    assert np.isclose(expected_prices, computed_prices, atol=TOLERANCE)
+
+    expected_prices = reporting_date_price_variables.get("high_prices_false")
+    computed_prices = compute_price_at_reporting_date(
+        prices=reporting_date_price_variables.get("prices_content"),
+        filling_date_flag=False,
+        key="high"
+        )
+    assert np.isclose(expected_prices, computed_prices, atol=TOLERANCE)
+
+    expected_prices = reporting_date_price_variables.get("high_prices_true")
+    computed_prices = compute_price_at_reporting_date(
+        prices=reporting_date_price_variables.get("prices_content"),
+        filling_date_flag=True,
+        key="high"
+        )
+    assert np.isclose(expected_prices, computed_prices, atol=TOLERANCE)
+
+    expected_prices = np.Inf
+    computed_prices = compute_price_at_reporting_date(
+        prices=[],
+        filling_date_flag=False,
+        key="low"
+        )
+    assert expected_prices == computed_prices
+
+    expected_prices = np.Inf
+    computed_prices = compute_price_at_reporting_date(
+        prices=[],
+        filling_date_flag=True,
+        key="high"
+        )
+    assert expected_prices == computed_prices
