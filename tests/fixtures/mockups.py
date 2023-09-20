@@ -316,8 +316,8 @@ def reporting_date_price_variables():
                 "changeOverTime": 0.0158,
             }
         ],
-        "low_prices_false": 3.798, #[3.81, 3.8, 3.81, 3.81, 3.761],
-        "high_prices_false": 3.933, #[3.9434, 3.94, 3.98, 3.94, 3.86],
-        "low_prices_true": 3.805, #[3.81, 3.8, 3.81, 3.81, 3.761],
-        "high_prices_true": 3.942, #[3.9434, 3.94, 3.98, 3.94, 3.86],
+        "low_prices_false": 3.798,
+        "high_prices_false": 3.933,
+        "low_prices_true": 3.805,
+        "high_prices_true": 3.942,
     }

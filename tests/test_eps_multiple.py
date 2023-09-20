@@ -20,11 +20,10 @@ from valuation.eps_multiple import (
 from valuation.constants import (
     TOTAL_ASSETS_KEY,
     SHARES_OUTS_KEY,
-    CURRENT_ASSETS_FACTORS,
     EXPECTED_OBLIGATIONS,
     TOTAL_LIAB_KEY,
     STOCKHOLDERS_EQUITY_KEY,
-    DATE_KEY,
+    DATE_KEY,    
 )
 
 TOLERANCE = 1e-3
@@ -305,13 +304,6 @@ def test_compute_pe_ratio(pe_ratio_variables):
     pe_ratio_variables["eps"] = eps
 
 
-"""def compute_de_ratio(deco: Dict[str, Any], obligation_type: str) -> float:
-    if obligation_type not in EXPECTED_OBLIGATIONS:
-        raise AttributeError(
-            f"invalid `obligation_type` attribute. The accepted values are {EXPECTED_OBLIGATIONS}"
-        )
-    return deco.get(obligation_type, 1e6) / deco.get(STOCKHOLDERS_EQUITY_KEY, 1e-6)"""
-
 @pytest.mark.parametrize(
     "deco, obligation_type, ratio",
     [
@@ -336,13 +328,7 @@ def test_compute_de_ratio(de_ratio_variables):
     expected_de_ratio = 3702e9
     computed_de_ratio = compute_de_ratio(de_ratio_variables, "totalLiabilities")
     assert np.isclose(expected_de_ratio, computed_de_ratio, atol=TOLERANCE)
-    
-"""def get_date_range(
-    date: pd.Timestamp, window_start_offset: int = 30, window_end_offset: int = 46
-) -> Tuple[str, str]:
-    window_start = (date + pd.DateOffset(days=window_start_offset)).date()
-    window_end = (date + pd.DateOffset(days=window_end_offset)).date()
-    return str(window_start), str(window_end)"""
+
 
 @pytest.mark.parametrize(
     "date, window_start_offset, window_end_offset, window",
@@ -374,18 +360,6 @@ def test_get_date_range(date_range_variables):
     computed_range = get_date_range(date, start, end)
     assert expected_range == computed_range
 
-"""
-def get_reporting_window(deco):
-    filling_date = deco.get(FILLING_DATE_KEY, None)
-    
-    if filling_date is None:
-        reporting_start, reporting_end = get_date_range(filling_date)
-    else:
-        reporting_start = filling_date
-        reporting_datetime = pd.to_datetime(filling_date) + pd.DateOffset(days=3)
-        reporting_end = str(reporting_datetime.date())
-    return reporting_start, reporting_end, filling_date is not None
-"""
 
 @pytest.mark.parametrize(
     "deco, window_and_date",
@@ -417,10 +391,6 @@ def test_get_reporting_window(reporting_date_variables):
     computed_output = get_reporting_window(reporting_date_variables)
     assert expected_output == computed_output
 
-"""
-def get_price_history(deco: Dict[str, Any]) -> List[Dict[str, Any]]:
-    return deco.get("historical", [])
-"""
 
 @pytest.mark.parametrize(
     "deco, price_history",
@@ -446,18 +416,6 @@ def test_get_price_history(price_hist_variables):
     computed_price_hist = get_price_history(price_hist_variables)
     assert expected_price_hist == computed_price_hist
 
-"""
-def compute_price_at_reporting_date(prices: List[str], filling_date_flag: bool, key: str = "low") -> float:
-    if filling_date_flag is False:
-        range_price_lows = get_key_from_iterator(prices, key)
-    else:
-        range_price_lows = get_key_from_iterator(prices[:2], key)
-    if range_price_lows:
-        avg_price_at_report = compute_avg_value(range_price_lows)
-    else:
-        avg_price_at_report = np.Inf
-    return avg_price_at_report
-"""
 
 @pytest.mark.parametrize(
     "prices, filling_date_flag, key, avg_price_at_report",
