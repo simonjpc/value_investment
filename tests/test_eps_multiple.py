@@ -14,6 +14,8 @@ from valuation.eps_multiple import (
     compute_de_ratio,
     get_date_range,
     get_reporting_window,
+    get_price_history,
+    compute_price_at_reporting_date,
 )
 from valuation.constants import (
     TOTAL_ASSETS_KEY,
@@ -414,3 +416,109 @@ def test_get_reporting_window(reporting_date_variables):
     expected_output = (None, None, False)
     computed_output = get_reporting_window(reporting_date_variables)
     assert expected_output == computed_output
+
+"""
+def get_price_history(deco: Dict[str, Any]) -> List[Dict[str, Any]]:
+    return deco.get("historical", [])
+"""
+
+@pytest.mark.parametrize(
+    "deco, price_history",
+    [
+        (None, "`deco` attribute must be a dictionary"),
+        ([], "`deco` attribute must be a dictionary"),
+    ]
+)
+def test_get_price_history_crash(deco, price_history):
+    try:
+        _ = get_price_history(deco)
+    except AttributeError as err:
+        assert price_history == str(err)
+
+@pytest.mark.usefixtures("price_hist_variables")
+def test_get_price_history(price_hist_variables):
+    expected_price_hist = price_hist_variables.get("historical")
+    computed_price_hist = get_price_history(price_hist_variables)
+    assert expected_price_hist == computed_price_hist
+
+    price_hist_variables = {}
+    expected_price_hist = []
+    computed_price_hist = get_price_history(price_hist_variables)
+    assert expected_price_hist == computed_price_hist
+
+"""
+def compute_price_at_reporting_date(prices: List[str], filling_date_flag: bool, key: str = "low") -> float:
+    if filling_date_flag is False:
+        range_price_lows = get_key_from_iterator(prices, key)
+    else:
+        range_price_lows = get_key_from_iterator(prices[:2], key)
+    if range_price_lows:
+        avg_price_at_report = compute_avg_value(range_price_lows)
+    else:
+        avg_price_at_report = np.Inf
+    return avg_price_at_report
+"""
+
+@pytest.mark.parametrize(
+    "prices, filling_date_flag, key, avg_price_at_report",
+    [
+        (None, None, None, "`prices` attribute must be a list"),
+        ([], None, None, "`filling_date_flag` attribute must be boolean"),
+        ([], True, None, "`key` attribute must be a string"),
+    ]
+)
+def test_compute_price_at_reporting_date_crash(prices, filling_date_flag, key, avg_price_at_report):
+    try:
+        _ = compute_price_at_reporting_date(prices=prices, filling_date_flag=filling_date_flag, key=key)
+    except AttributeError as err:
+        assert avg_price_at_report == str(err)
+
+@pytest.mark.usefixtures("reporting_date_price_variables")
+def test_compute_price_at_reporting_date(reporting_date_price_variables):
+    expected_prices = reporting_date_price_variables.get("low_prices_false")
+    computed_prices = compute_price_at_reporting_date(
+        prices=reporting_date_price_variables.get("prices_content"),
+        filling_date_flag=False,
+        key="low"
+        )
+    assert np.isclose(expected_prices, computed_prices, atol=TOLERANCE)
+
+    expected_prices = reporting_date_price_variables.get("low_prices_true")
+    computed_prices = compute_price_at_reporting_date(
+        prices=reporting_date_price_variables.get("prices_content"),
+        filling_date_flag=True,
+        key="low"
+        )
+    assert np.isclose(expected_prices, computed_prices, atol=TOLERANCE)
+
+    expected_prices = reporting_date_price_variables.get("high_prices_false")
+    computed_prices = compute_price_at_reporting_date(
+        prices=reporting_date_price_variables.get("prices_content"),
+        filling_date_flag=False,
+        key="high"
+        )
+    assert np.isclose(expected_prices, computed_prices, atol=TOLERANCE)
+
+    expected_prices = reporting_date_price_variables.get("high_prices_true")
+    computed_prices = compute_price_at_reporting_date(
+        prices=reporting_date_price_variables.get("prices_content"),
+        filling_date_flag=True,
+        key="high"
+        )
+    assert np.isclose(expected_prices, computed_prices, atol=TOLERANCE)
+
+    expected_prices = np.Inf
+    computed_prices = compute_price_at_reporting_date(
+        prices=[],
+        filling_date_flag=False,
+        key="low"
+        )
+    assert expected_prices == computed_prices
+
+    expected_prices = np.Inf
+    computed_prices = compute_price_at_reporting_date(
+        prices=[],
+        filling_date_flag=True,
+        key="high"
+        )
+    assert expected_prices == computed_prices

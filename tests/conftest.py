@@ -11,4 +11,6 @@ from tests.fixtures.mockups import (
     de_ratio_variables,
     date_range_variables,
     reporting_date_variables,
+    price_hist_variables,
+    reporting_date_price_variables,
 )

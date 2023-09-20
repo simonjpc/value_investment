@@ -216,17 +216,29 @@ def get_reporting_window(deco):
 #    historical_prices = data_prices.get("historical", {})
 
 def get_price_history(deco: Dict[str, Any]) -> List[Dict[str, Any]]:
+    if not isinstance(deco, dict):
+        raise AttributeError("`deco` attribute must be a dictionary")
     return deco.get("historical", [])
 
 #def get_reporting_prices(iterator: List[Dict[str, Any]], price_key: str = "low") -> List[float]:
 #    prices = get_key_from_iterator(iterator, price_key)
 #    return prices
 
-def compute_price_at_reporting_date(prices: List[str], filling_date_flag: bool) -> float:
+def compute_price_at_reporting_date(
+    prices: List[str],
+    filling_date_flag: bool,
+    key: str = "low",
+) -> float:
+    if not isinstance(prices, list):
+        raise AttributeError("`prices` attribute must be a list")
+    if not isinstance(filling_date_flag, bool):
+        raise AttributeError("`filling_date_flag` attribute must be boolean")
+    if not isinstance(key, str):
+        raise AttributeError("`key` attribute must be a string")
     if filling_date_flag is False:
-        range_price_lows = get_key_from_iterator(prices, "low")
+        range_price_lows = get_key_from_iterator(prices, key)
     else:
-        range_price_lows = get_key_from_iterator(prices[:2], "low")
+        range_price_lows = get_key_from_iterator(prices[:2], key)
     if range_price_lows:
         avg_price_at_report = compute_avg_value(range_price_lows)
     else:
