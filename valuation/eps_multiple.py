@@ -26,7 +26,7 @@ from valuation.constants import (
 from typing import Dict, Any, Tuple, List, Union
 import numpy as np
 import pandas as pd
-from valuation.extractor import get_prices_in_range
+from valuation.extraction import get_prices_in_range
 from valuation.utils import compute_avg_value, get_key_from_iterator
 
 class EPSMultiple():

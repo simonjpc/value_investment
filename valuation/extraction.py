@@ -8,6 +8,11 @@ import pandas as pd
 KEY = os.getenv("VALUATION_KEY")
 
 def get_income_stmt_info(ticker: str, nb_years: int = 10) -> List[Dict[str, Any]]:
+    if not isinstance(ticker, str):
+        raise AttributeError("`ticker` attribute must be a string")
+    if not isinstance(nb_years, int):
+        raise AttributeError("`nb_years` attribute must be an integer")
+        
     url_income_stmt = f"{API_BASE_PATH}/income-statement/{ticker}"
 
     params = {
