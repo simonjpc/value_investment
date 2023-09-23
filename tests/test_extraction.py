@@ -4,7 +4,7 @@ import requests
 from valuation.extraction import get_income_stmt_info
 from valuation.constants import API_BASE_PATH
 
-# Mock the requests library to simulate API responses
+
 class MockResponse:
     def __init__(self, status_code, json_data=None):
         self.status_code = status_code
@@ -17,13 +17,6 @@ class MockResponse:
         if self.status_code >= 400:
             raise requests.exceptions.HTTPError(f"HTTP error: {self.status_code}")
 
-@pytest.fixture
-def mock_requests_get(monkeypatch):
-    def mock_get(*args, **kwargs):
-        return MockResponse(200, {"key": "value"})
-
-    monkeypatch.setattr(requests, "get", mock_get)
-    
 @pytest.mark.parametrize(
     "ticker, nb_years, api_response",
     [
@@ -31,31 +24,22 @@ def mock_requests_get(monkeypatch):
         ("", None, "`nb_years` attribute must be an integer"),
     ]
 )
-def test_get_income_stmt_info_crash(ticker, nb_years, api_response):
+def test_get_income_stmt_info_crash(ticker, nb_years, api_response, monkeypatch):
     try:
         _ = get_income_stmt_info(ticker, nb_years)
     except (AttributeError) as err:
         assert api_response == str(err)
 
-def test_request_exception(monkeypatch):
-
     def mock_request_exception(*args, **kwargs):
         raise requests.exceptions.RequestException("Request error")
-
     monkeypatch.setattr(requests, "get", mock_request_exception)
-
-    result = get_income_stmt_info("AAPL", 5)
+    result = get_income_stmt_info("GM", 5)
     assert result == []
 
-def test_json_decode_error(monkeypatch):
-    # Test when a JSON decoding error occurs
     def mock_json_decode_error(*args, **kwargs):
         return MockResponse(200, "invalid JSON")
-
     monkeypatch.setattr(requests, "get", mock_json_decode_error)
-
-    #with pytest.raises(json.JSONDecodeError):
-    result = get_income_stmt_info("AAPL", 5)
+    result = get_income_stmt_info("GM", 5)
     assert result == "invalid JSON"
 
 @pytest.mark.usefixtures("income_stmt_response_mock")
