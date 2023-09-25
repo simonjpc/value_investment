@@ -100,6 +100,8 @@ def get_prices_in_range(ticker: str, window_start: str, window_end: str) -> Dict
     return {}  # Return an empty list if hitting an exception
 
 def get_current_price(ticker: str) -> float:
+    if not isinstance(ticker, str):
+        raise TypeError("`ticker` attribute must be a string")
     url_price = f"{API_BASE_PATH}/quote/{ticker}"
     
     params = {
