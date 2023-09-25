@@ -44,12 +44,6 @@ def test_compute_fp_crash(eps, growth_value, years, future_pe, fp):
             eps, growth_value, years, future_pe
         )
     assert str(e.value) == fp
-    #try:
-    #    _ = compute_fp(
-    #        eps, growth_value, years, future_pe
-    #    )
-    #except (TypeError, AttributeError) as err:
-    #    assert fp == str(err)
 
 @pytest.mark.usefixtures("fp_variables")
 def test_compute_fp(fp_variables):
@@ -77,10 +71,6 @@ def test_compute_pfv_crash(fp, return_value, years, pfv):
     with pytest.raises((TypeError, ValueError)) as e:
         _ = compute_pfv(fp, return_value, years)
     assert str(e.value) == pfv
-    #try:
-    #    _ = compute_pfv(fp, return_value, years)
-    #except (TypeError, ValueError) as err:
-    #    assert pfv == str(err)
 
 @pytest.mark.usefixtures("pfv_variables")
 def test_compute_pfv(pfv_variables):
@@ -112,10 +102,6 @@ def test_compute_pex_value_handler_crash(eps, growth_value, return_value, future
     with pytest.raises((TypeError, ValueError)) as e:
         _ = compute_pex_value_handler(eps, growth_value, return_value, future_pe, years)
     assert str(e.value) == pfv
-    #try:
-    #    _ = compute_pex_value_handler(eps, growth_value, return_value, future_pe, years)
-    #except (TypeError, ValueError) as err:
-    #    assert pfv == str(err)
 
 @pytest.mark.usefixtures("pex_handler_variables")
 def test_compute_pex_value_handler(pex_handler_variables):
@@ -151,10 +137,6 @@ def test_compute_pex_value_crash(deco, growth_value, return_value, future_pe, ye
     with pytest.raises((TypeError, ValueError)) as e:
         _ = compute_pex_value(deco, growth_value, return_value, future_pe, years)
     assert str(e.value) == pfv
-    #try:
-    #    _ = compute_pex_value(deco, growth_value, return_value, future_pe, years)
-    #except (TypeError, ValueError) as err:
-    #    assert pfv == str(err)
 
 @pytest.mark.usefixtures("pex_variables")
 def test_compute_pex_value(pex_variables):
@@ -187,10 +169,6 @@ def test_compute_tangible_book_value_crash(deco, tangible_bv):
     with pytest.raises(AttributeError) as e:
         _ = compute_tangible_book_value(deco)
     assert str(e.value) == tangible_bv
-    #try:
-    #    _ = compute_tangible_book_value(deco)
-    #except (AttributeError) as err:
-    #    assert tangible_bv == str(err)
 
 @pytest.mark.usefixtures("tangible_bv_variables")
 def test_compute_tangible_book_value(tangible_bv_variables):
@@ -216,10 +194,6 @@ def test_compute_tangible_book_value_ps_crash(deco, tangible_bvps):
     with pytest.raises(AttributeError) as e:
         _ = compute_tangible_book_value_ps(deco)
     assert str(e.value) == tangible_bvps
-    #try:
-    #    _ = compute_tangible_book_value_ps(deco)
-    #except AttributeError as err:
-    #    assert tangible_bvps == str(err)
 
 @pytest.mark.usefixtures("compute_tangible_bvps")
 def test_compute_tangible_book_value_ps(compute_tangible_bvps):
@@ -250,10 +224,6 @@ def test_compute_discounted_tangible_book_value_crash(deco, dct_tangible_bv):
     with pytest.raises(AttributeError) as e:
         _ = compute_discounted_tangible_book_value(deco)
     assert str(e.value) == dct_tangible_bv
-    #try:
-    #    _ = compute_discounted_tangible_book_value(deco)
-    #except AttributeError as err:
-    #    assert dct_tangible_bv == str(err)
 
 @pytest.mark.usefixtures("dct_tangible_bv_variables", "tangible_bv_variables")
 def test_compute_discounted_tangible_book_value(dct_tangible_bv_variables, tangible_bv_variables):
@@ -280,10 +250,6 @@ def test_compute_discounted_tangible_book_value_ps_crash(deco, dct_tangible_bvps
     with pytest.raises(AttributeError) as e:
         _ = compute_discounted_tangible_book_value_ps(deco)
     assert str(e.value) == dct_tangible_bvps
-    #try:
-    #    _ = compute_discounted_tangible_book_value_ps(deco)
-    #except AttributeError as err:
-    #    assert dct_tangible_bvps == str(err)
 
 @pytest.mark.usefixtures("compute_dct_tangible_bvps", "compute_tangible_bvps")
 def test_compute_discounted_tangible_book_value_ps(compute_dct_tangible_bvps, compute_tangible_bvps):
@@ -313,10 +279,6 @@ def test_compute_pe_ratio_crash(deco, pe_ratio):
     with pytest.raises(AttributeError) as e:
         _ = compute_pe_ratio(deco)
     assert str(e.value) == pe_ratio
-    #try:
-    #    _ = compute_pe_ratio(deco)
-    #except AttributeError as err:
-    #    assert pe_ratio == str(err)
 
 @pytest.mark.usefixtures("pe_ratio_variables")
 def test_compute_pe_ratio(pe_ratio_variables):
@@ -344,10 +306,6 @@ def test_compute_de_ratio_crash(deco, obligation_type, ratio):
     with pytest.raises(AttributeError) as e:
         _ = compute_de_ratio(deco, obligation_type)
     assert str(e.value) == ratio
-    #try:
-    #    _ = compute_de_ratio(deco, obligation_type)
-    #except AttributeError as err:
-    #    assert ratio == str(err)
 
 @pytest.mark.usefixtures("de_ratio_variables")
 def test_compute_de_ratio(de_ratio_variables):
@@ -375,10 +333,6 @@ def test_get_date_range_crash(date, window_start_offset, window_end_offset, wind
     with pytest.raises((AttributeError, ValueError)) as e:
         _ = get_date_range(date, window_start_offset, window_end_offset)
     assert str(e.value) == window
-    #try:
-    #    _ = get_date_range(date, window_start_offset, window_end_offset)
-    #except (AttributeError, ValueError) as err:
-    #    assert window == str(err)
 
 @pytest.mark.usefixtures("date_range_variables")
 def test_get_date_range(date_range_variables):
@@ -406,10 +360,6 @@ def test_get_reporting_window_crash(deco, window_and_date):
     with pytest.raises(AttributeError) as e:
         _ = get_reporting_window(deco)
     assert str(e.value) == window_and_date
-    #try:
-    #    _ = get_reporting_window(deco)
-    #except AttributeError as err:
-    #    assert window_and_date == str(err)
 
 @pytest.mark.usefixtures("reporting_date_variables")
 def test_get_reporting_window(reporting_date_variables):
@@ -440,10 +390,6 @@ def test_get_price_history_crash(deco, price_history):
     with pytest.raises(AttributeError) as e:
         _ = get_price_history(deco)
     assert str(e.value) == price_history
-    #try:
-    #    _ = get_price_history(deco)
-    #except AttributeError as err:
-    #    assert price_history == str(err)
 
 @pytest.mark.usefixtures("price_hist_variables")
 def test_get_price_history(price_hist_variables):
@@ -469,10 +415,6 @@ def test_compute_price_at_reporting_date_crash(prices, filling_date_flag, key, a
     with pytest.raises(AttributeError) as e:
         _ = compute_price_at_reporting_date(prices=prices, filling_date_flag=filling_date_flag, key=key)
     assert str(e.value) == avg_price_at_report
-    #try:
-    #    _ = compute_price_at_reporting_date(prices=prices, filling_date_flag=filling_date_flag, key=key)
-    #except AttributeError as err:
-    #    assert avg_price_at_report == str(err)
 
 @pytest.mark.usefixtures("reporting_date_price_variables")
 def test_compute_price_at_reporting_date(reporting_date_price_variables):
