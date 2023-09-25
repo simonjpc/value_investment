@@ -58,6 +58,27 @@ def get_balance_sheet_info(ticker: str, nb_years: int = 10) -> List[Dict[str, An
     return [] # Return an empty list if we fall in an exception
 
 def get_prices_in_range(ticker: str, window_start: str, window_end: str) -> Dict[str, Any]:
+    if not all([isinstance(var, str) for var in (ticker, window_start, window_end)]):
+        raise AttributeError("all input attributes must be of type string")
+
+    for element in (window_start, window_end):
+        try:
+            year, month, day = element.split("-")
+        except:
+            raise TypeError("the format of attributes `window_start` and `window_end` must be YYYY-MM-DD")
+
+        if not (len(year) == 4 and len(month) == 2 and len(day) == 2):
+            raise TypeError(
+                "the format of attributes `window_start` and `window_end` must be YYYY-MM-DD"
+            )
+        elif int(month) > 12 or int(day) > 31:
+            raise TypeError(
+                "the format of attributes `window_start` and `window_end` must be YYYY-MM-DD"
+            )
+        elif pd.to_datetime(window_start) > pd.to_datetime(window_end):
+            raise TypeError("`window_start` must be earlier in time than `window_end`")
+
+
     url_prices = f"{API_BASE_PATH}/historical-price-full/{ticker}"
     
     params = {

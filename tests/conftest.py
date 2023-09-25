@@ -15,4 +15,5 @@ from tests.fixtures.mockups import (
     reporting_date_price_variables,
     income_stmt_response_mock,
     balance_sheet_response_mock,
+    prices_in_range_mock,
 )

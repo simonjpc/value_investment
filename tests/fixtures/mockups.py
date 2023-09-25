@@ -619,3 +619,71 @@ def balance_sheet_response_mock():
             "finalLink": "https://www.sec.gov/Archives/edgar/data/96793/000156459020044839/ssy-10k_20200630.htm",
         }
     ]
+
+@pytest.fixture
+def prices_in_range_mock():
+    return {
+        "symbol": "SSY",
+        "historical": [
+            {
+                "date": "2020-02-06",
+                "open": 1.19,
+                "high": 1.1912,
+                "low": 1.14,
+                "close": 1.1912,
+                "adjClose": 1.19,
+                "volume": 15926,
+                "unadjustedVolume": 15900,
+                "change": 0.0012,
+                "changePercent": 0.10084,
+                "vwap": 1.18,
+                "label": "February 06, 20",
+                "changeOverTime": 0.0010084,
+            },
+            {
+                "date": "2020-02-05",
+                "open": 1.18,
+                "high": 1.2248,
+                "low": 1.18,
+                "close": 1.2001,
+                "adjClose": 1.2,
+                "volume": 16993,
+                "unadjustedVolume": 17000,
+                "change": 0.0201,
+                "changePercent": 1.7,
+                "vwap": 1.2,
+                "label": "February 05, 20",
+                "changeOverTime": 0.017,
+            },
+            {
+                "date": "2020-02-04",
+                "open": 1.1589,
+                "high": 1.414,
+                "low": 1.1588,
+                "close": 1.25,
+                "adjClose": 1.25,
+                "volume": 159982,
+                "unadjustedVolume": 159700,
+                "change": 0.0911,
+                "changePercent": 7.86,
+                "vwap": 1.26,
+                "label": "February 04, 20",
+                "changeOverTime": 0.0786,
+            },
+            {
+                "date": "2020-02-03",
+                "open": 1.1532,
+                "high": 1.2045,
+                "low": 1.12,
+                "close": 1.14,
+                "adjClose": 1.14,
+                "volume": 11695,
+                "unadjustedVolume": 11700,
+                "change": -0.0132,
+                "changePercent": -1.14,
+                "vwap": 1.14,
+                "label": "February 03, 20",
+                "changeOverTime": -0.0114,
+            }
+        ]
+    }
