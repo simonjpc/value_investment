@@ -25,10 +25,9 @@ class MockResponse:
     ]
 )
 def test_get_income_stmt_info_crash(ticker, nb_years, api_response, monkeypatch):
-    try:
+    with pytest.raises(AttributeError) as e:
         _ = get_income_stmt_info(ticker, nb_years)
-    except (AttributeError) as err:
-        assert api_response == str(err)
+    assert str(e.value) == api_response
 
     def mock_request_exception(*args, **kwargs):
         raise requests.exceptions.RequestException("Request error")
@@ -68,10 +67,9 @@ def test_get_income_stmt_info(income_stmt_response_mock):
     ]
 )
 def test_get_balance_sheet_info_crash(ticker, nb_years, api_response, monkeypatch):
-    try:
+    with pytest.raises(TypeError) as e:
         _ = get_balance_sheet_info(ticker, nb_years)
-    except (TypeError) as err:
-        assert api_response == str(err)
+    assert str(e.value) == api_response
 
     def mock_request_exception(*args, **kwargs):
         raise requests.exceptions.RequestException("Request error")
