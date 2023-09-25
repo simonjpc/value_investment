@@ -7,7 +7,11 @@ from valuation.constants import COLS_TO_PLOT, COLS_WITH_SAME_SCALE
 def get_key_from_iterator(
     iterator: List[Dict[str, Any]], key: str,
 ) -> List[float]:
-    return [element[key] for element in iterator]
+    if not isinstance(iterator, list):
+        raise TypeError("`iterator` attribute must be a list of dictionaries")
+    if not isinstance(key, str):
+        raise TypeError("`key` attribute must be a string")
+    return [element.get(key, None) for element in iterator]
 
 
 def compute_rate_of_change(prev_value: float, current_value: float) -> float:
