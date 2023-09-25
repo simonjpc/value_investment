@@ -1,7 +1,7 @@
 import pytest
 import requests_mock
 import requests
-from valuation.extraction import get_income_stmt_info, get_balance_sheet_info
+from valuation.extraction import get_income_stmt_info, get_balance_sheet_info, get_prices_in_range
 from valuation.constants import API_BASE_PATH
 
 
@@ -25,10 +25,9 @@ class MockResponse:
     ]
 )
 def test_get_income_stmt_info_crash(ticker, nb_years, api_response, monkeypatch):
-    try:
+    with pytest.raises(AttributeError) as e:
         _ = get_income_stmt_info(ticker, nb_years)
-    except (AttributeError) as err:
-        assert api_response == str(err)
+    assert str(e.value) == api_response
 
     def mock_request_exception(*args, **kwargs):
         raise requests.exceptions.RequestException("Request error")
@@ -60,26 +59,6 @@ def test_get_income_stmt_info(income_stmt_response_mock):
         assert result == []
 
 
-"""
-def get_balance_sheet_info(ticker: str, nb_years: int = 10) -> List[Dict[str, Any]]:
-    url_balance_sheet = f"{API_BASE_PATH}/balance-sheet-statement/{ticker}"
-
-    params ={
-        "limit": nb_years,
-        "apikey": KEY,
-    }
-
-    try:
-        response = requests.get(url_balance_sheet, params=params)
-        response.raise_for_status()
-        data_balance_sheet = response.json()
-        return data_balance_sheet
-    except requests.exceptions.RequestException as e:
-        print(f"Request error: {e}")
-    except json.JSONDecodeError as e:
-        print(f"JSON decoding error: {e}")
-"""
-
 @pytest.mark.parametrize(
     "ticker, nb_years, api_response",
     [
@@ -88,10 +67,9 @@ def get_balance_sheet_info(ticker: str, nb_years: int = 10) -> List[Dict[str, An
     ]
 )
 def test_get_balance_sheet_info_crash(ticker, nb_years, api_response, monkeypatch):
-    try:
+    with pytest.raises(TypeError) as e:
         _ = get_balance_sheet_info(ticker, nb_years)
-    except (TypeError) as err:
-        assert api_response == str(err)
+    assert str(e.value) == api_response
 
     def mock_request_exception(*args, **kwargs):
         raise requests.exceptions.RequestException("Request error")
@@ -121,3 +99,35 @@ def test_get_balance_sheet_info(balance_sheet_response_mock):
         mocker.get(mocked_url, json=[], status_code=200)
         result = get_balance_sheet_info(ticker=ticker, nb_years=years)
         assert result == []
+
+
+@pytest.mark.parametrize(
+    "ticker, window_start, window_end, prices",
+    [
+        (None, None, None, "all input attributes must be of type string"),
+        ("", "", [], "all input attributes must be of type string"),
+        ("SSY", "2020-02-01", "06-02-2020", "the format of attributes `window_start` and `window_end` must be YYYY-MM-DD"),
+        ("SSY", "2020-02-06", "2020-02-01", "`window_start` must be earlier in time than `window_end`"),
+    ]
+)
+def test_get_prices_in_range_crash(ticker, window_start, window_end, prices):
+    with pytest.raises((AttributeError, TypeError)) as e:
+        _ = get_prices_in_range(ticker=ticker, window_start=window_start, window_end=window_end)
+    assert str(e.value) == prices
+
+@pytest.mark.usefixtures("prices_in_range_mock")
+def test_get_prices_in_range(prices_in_range_mock):
+
+    with requests_mock.Mocker() as mocker:
+        ticker, start, end = "SSY", "2020-02-01", "2020-02-06"
+        mocked_url = f"{API_BASE_PATH}/historical-price-full/{ticker}"
+        mocker.get(mocked_url, json=prices_in_range_mock, status_code=200)
+        result = get_prices_in_range(ticker=ticker, window_start=start, window_end=end)
+        assert result == prices_in_range_mock
+
+        ticker = "FAKETICKR"
+        mocked_url = f"{API_BASE_PATH}/historical-price-full/{ticker}"
+        mocker.get(mocked_url, json={}, status_code=200)
+        result = get_prices_in_range(ticker=ticker, window_start=start, window_end=end)
+        assert result == {}
+
