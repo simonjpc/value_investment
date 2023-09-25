@@ -1,7 +1,7 @@
 import pytest
 import requests_mock
 import requests
-from valuation.extraction import get_income_stmt_info, get_balance_sheet_info, get_prices_in_range
+from valuation.extraction import get_income_stmt_info, get_balance_sheet_info, get_prices_in_range, get_current_price
 from valuation.constants import API_BASE_PATH
 
 
@@ -131,3 +131,52 @@ def test_get_prices_in_range(prices_in_range_mock):
         result = get_prices_in_range(ticker=ticker, window_start=start, window_end=end)
         assert result == {}
 
+"""def get_current_price(ticker: str) -> float:
+    url_price = f"{API_BASE_PATH}/quote/{ticker}"
+    
+    params = {
+        "limit": 1,
+        "apikey": KEY
+    }
+    
+    try:
+        response = requests.get(url_price, params=params)
+        response.raise_for_status()  # Raise an exception for HTTP errors
+        data_price = response.json()
+        
+        if data_price:
+            return data_price[0]["price"]
+    except requests.exceptions.RequestException as e:
+        print(f"Request error: {e}")
+    except ValueError as e:
+        print(f"JSON decoding error: {e}")
+    
+    return None"""
+
+@pytest.mark.parametrize(
+    "ticker, current_price",
+    [
+        (None, "`ticker` attribute must be a string"),
+        ([], "`ticker` attribute must be a string"),
+    ]
+)
+def test_get_current_price_crash(ticker, current_price):
+    with pytest.raises(TypeError) as e:
+        _ = get_current_price(ticker)
+    assert str(e.value) == current_price
+
+@pytest.mark.usefixtures("get_current_price_mock")
+def test_get_current_price(get_current_price_mock):
+
+    with requests_mock.Mocker() as mocker:
+        ticker = "SSY"
+        mocked_url = f"{API_BASE_PATH}/quote/{ticker}"
+        mocker.get(mocked_url, json=get_current_price_mock, status_code=200)
+        result = get_current_price(ticker)
+        assert result == get_current_price_mock[0].get("price")
+
+        ticker = "FAKETICKR"
+        mocked_url = f"{API_BASE_PATH}/quote/{ticker}"
+        mocker.get(mocked_url, json=[], status_code=200)
+        result = get_current_price(ticker)
+        assert result == None

@@ -687,3 +687,32 @@ def prices_in_range_mock():
             }
         ]
     }
+
+@pytest.fixture
+def get_current_price_mock():
+    return [
+        {
+            "symbol": "SSY",
+            "name": "SunLink Health Systems, Inc.",
+            "price": 0.8949,
+            "changesPercentage": 2.8621,
+            "change": 0.0249,
+            "dayLow": 0.8701,
+            "dayHigh": 0.8949,
+            "yearHigh": 1.47,
+            "yearLow": 0.53,
+            "marketCap": 6292579,
+            "priceAvg50": 0.9296,
+            "priceAvg200": 0.94395,
+            "exchange": "AMEX",
+            "volume": 1250,
+            "avgVolume": 7685,
+            "open": 0.87,
+            "previousClose": 0.87,
+            "eps": -0.37,
+            "pe": -2.42,
+            "earningsAnnouncement": "2023-09-27T14:02:00.000+0000",
+            "sharesOutstanding": 7031600,
+            "timestamp": 1695656746,
+        }
+    ]
