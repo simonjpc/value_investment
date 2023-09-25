@@ -17,4 +17,5 @@ from tests.fixtures.mockups import (
     balance_sheet_response_mock,
     prices_in_range_mock,
     get_current_price_mock,
+    balance_sheet_data,
 )
