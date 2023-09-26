@@ -48,12 +48,18 @@ def compute_rates_of_change(iterator: List[float]) -> List[float]:
     return all_growth
 
 def invert_iterator(iterator):
+    if not isinstance(iterator, list):
+        raise TypeError("`iterator` attribute must be a list")
     return iterator[::-1]
 
-def drop_nans(iterator: List[float]) -> List[float]:
+def drop_nulls(iterator: List[float]) -> List[float]:
+    if not isinstance(iterator, list):
+        raise TypeError("`iterator` attribute must be a list")
     iterator_wo_nans = np.array(iterator)
-    iterator_wo_nans = iterator_wo_nans[~np.isnan(iterator_wo_nans)]
-    return iterator_wo_nans.tolist()
+    iterator_wo_nans = [
+        element for element in iterator_wo_nans if (element is not None) and (not pd.isna(element))
+    ]
+    return iterator_wo_nans
 
 def compute_stat_bound(
     iterator: List[float], q_inf: float = 0.25, q_sup: float = 0.75, distance: int = 3

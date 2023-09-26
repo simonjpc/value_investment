@@ -1,6 +1,6 @@
 import pytest
 import pandas as pd
-
+import numpy as np
 @pytest.fixture
 def fp_variables():
     """
@@ -903,4 +903,18 @@ def rates_of_change_variables():
     return {
         "iterator": [59557767, 55689016, 41435577, 45719024],
         "rates_of_change": [None, 0.069, 0.344, -0.094],
+    }
+
+@pytest.fixture
+def inversion_variables():
+    return {
+        "iterator": [59557767, 55689016, 41435577, 45719024],
+        "inverted_iterator" : [45719024, 41435577, 55689016, 59557767],
+    }
+
+@pytest.fixture
+def drop_nulls_variables():
+    return {
+        "iterator": [None, np.nan, 55689016, 41435577, 45719024],
+        "iterator_wo_null" : [55689016, 41435577, 45719024],
     }

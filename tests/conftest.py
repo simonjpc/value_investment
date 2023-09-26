@@ -20,4 +20,6 @@ from tests.fixtures.mockups import (
     balance_sheet_data,
     rate_of_change_variables,
     rates_of_change_variables,
+    inversion_variables,
+    drop_nulls_variables,
 )

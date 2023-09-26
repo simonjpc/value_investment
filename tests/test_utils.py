@@ -1,6 +1,6 @@
 import pytest
 import numpy as np
-from valuation.utils import get_key_from_iterator, compute_rate_of_change, compute_rates_of_change
+from valuation.utils import get_key_from_iterator, compute_rate_of_change, compute_rates_of_change, invert_iterator, drop_nulls
 
 TOLERANCE = 1e-3
 
@@ -81,3 +81,59 @@ def test_compute_rates_of_change(rates_of_change_variables):
     )
 
 
+@pytest.mark.parametrize(
+    "iterator, inverted_iterator",
+    [
+        (None, "`iterator` attribute must be a list"),
+        ("", "`iterator` attribute must be a list"),
+    ]
+)
+def test_invert_iterator_crash(iterator, inverted_iterator):
+    with pytest.raises(TypeError) as e:
+        _ = invert_iterator(iterator)
+    assert str(e.value) == inverted_iterator
+
+@pytest.mark.usefixtures("inversion_variables")
+def test_invert_iterator(inversion_variables):
+    expected_result = inversion_variables.get("inverted_iterator")
+    computed_result = invert_iterator(inversion_variables.get("iterator"))
+    assert expected_result == computed_result
+
+"""
+def drop_nans(iterator: List[float]) -> List[float]:
+    iterator_wo_nans = np.array(iterator)
+    iterator_wo_nans = iterator_wo_nans[~np.isnan(iterator_wo_nans)]
+    return iterator_wo_nans.tolist()
+"""
+@pytest.mark.parametrize(
+    "iterator, iterator_wo_nans",
+    [
+        (None, "`iterator` attribute must be a list"),
+    ]
+)
+def test_drop_nulls_crash(iterator, iterator_wo_nans):
+    with pytest.raises(TypeError) as e:
+        _ = drop_nulls(iterator)
+    assert str(e.value) == iterator_wo_nans
+
+
+@pytest.mark.usefixtures("drop_nulls_variables")
+def test_drop_nulls(drop_nulls_variables):
+    expected_result = drop_nulls_variables.get("iterator_wo_null")
+    iterator = drop_nulls_variables.get("iterator")
+    computed_result = drop_nulls(iterator)
+    assert expected_result == computed_result
+
+    computed_result = drop_nulls(iterator[1:])
+    assert expected_result == computed_result
+
+
+"""def compute_stat_bound(
+    iterator: List[float], q_inf: float = 0.25, q_sup: float = 0.75, distance: int = 3
+) -> Tuple[float, float]:
+    q1 = np.quantile(iterator, q_inf)
+    q3 = np.quantile(iterator, q_sup)
+    iqr = q3 - q1
+    lower_bound = q1 - distance*iqr
+    upper_bound = q3 + distance*iqr
+    return lower_bound, upper_bound"""
