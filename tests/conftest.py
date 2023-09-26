@@ -18,4 +18,6 @@ from tests.fixtures.mockups import (
     prices_in_range_mock,
     get_current_price_mock,
     balance_sheet_data,
+    rate_of_change_variables,
+    rates_of_change_variables,
 )

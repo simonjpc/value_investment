@@ -25,6 +25,8 @@ def compute_rate_of_change(prev_value: float, current_value: float) -> float:
     Returns:
         float: The rate of change.
     """
+    if not all([isinstance(var, (int, float)) for var in (prev_value, current_value)]):
+        raise TypeError("both `prev_value` and `current_value` attributes must be numerical")
     return (current_value - prev_value) / (prev_value + 1e-6)
 
 def compute_rates_of_change(iterator: List[float]) -> List[float]:
@@ -37,9 +39,11 @@ def compute_rates_of_change(iterator: List[float]) -> List[float]:
     Returns:
         List[float]: A list of rates of change.
     """
-    all_growth = [np.nan]  # Initialize with zero for the first element
+    if not isinstance(iterator, (tuple, list)):
+        raise TypeError("`iterator` attribute must be a list of a tuple")
+    all_growth = [None]  # Initialize with zero for the first element
     for idx in range(1, len(iterator)):
-        rate_change = compute_rate_of_change(iterator[idx-1], iterator[idx])
+        rate_change = compute_rate_of_change(iterator[idx], iterator[idx-1])
         all_growth.append(rate_change)
     return all_growth
 
