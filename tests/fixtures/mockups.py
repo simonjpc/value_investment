@@ -889,3 +889,18 @@ def balance_sheet_data():
             "finalLink": "https://www.sec.gov/Archives/edgar/data/96793/000156459020044839/ssy-10k_20200630.htm",
         }
     ]
+
+@pytest.fixture
+def rate_of_change_variables():
+    return {
+        "prev_value": 7.34,
+        "current_value": 8.11,
+        "rate_of_change": 0.105,
+    }
+
+@pytest.fixture
+def rates_of_change_variables():
+    return {
+        "iterator": [59557767, 55689016, 41435577, 45719024],
+        "rates_of_change": [None, 0.069, 0.344, -0.094],
+    }
