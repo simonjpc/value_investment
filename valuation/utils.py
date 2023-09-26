@@ -64,6 +64,10 @@ def drop_nulls(iterator: List[float]) -> List[float]:
 def compute_stat_bound(
     iterator: List[float], q_inf: float = 0.25, q_sup: float = 0.75, distance: int = 3
 ) -> Tuple[float, float]:
+    if not isinstance(iterator, list):
+        raise TypeError("`iterator` attribute must be a list")
+    if not all([isinstance(attr, (int, float)) for attr in (q_inf, q_sup, distance)]):
+        raise TypeError("all `q_inf`, `q_sup` and `distance` attributes must be a numerical")
     q1 = np.quantile(iterator, q_inf)
     q3 = np.quantile(iterator, q_sup)
     iqr = q3 - q1
@@ -72,6 +76,14 @@ def compute_stat_bound(
     return lower_bound, upper_bound
 
 def compute_avg_value(iterator: List[float]) -> float:
+    if not isinstance(iterator, (tuple, list)):
+        raise TypeError("`iterator` attribute must be a list or a tuple")
+    try:
+        average = np.mean(iterator)
+        if np.isnan(average):
+            raise ValueError("all elements of `iterator` attribute must be numerical")
+    except:
+        raise ValueError("all elements of `iterator` attribute must be numerical")
     return np.mean(iterator)
 
 def extract_key_from_dictionary(

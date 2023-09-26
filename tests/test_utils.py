@@ -1,6 +1,14 @@
 import pytest
 import numpy as np
-from valuation.utils import get_key_from_iterator, compute_rate_of_change, compute_rates_of_change, invert_iterator, drop_nulls
+from valuation.utils import (
+    get_key_from_iterator,
+    compute_rate_of_change,
+    compute_rates_of_change,
+    invert_iterator,
+    drop_nulls,
+    compute_stat_bound,
+    compute_avg_value,
+)
 
 TOLERANCE = 1e-3
 
@@ -137,3 +145,58 @@ def test_drop_nulls(drop_nulls_variables):
     lower_bound = q1 - distance*iqr
     upper_bound = q3 + distance*iqr
     return lower_bound, upper_bound"""
+
+@pytest.mark.parametrize(
+    "iterator, q_inf, q_sup, distance, bounds",
+    [
+        (None, None, None, None, "`iterator` attribute must be a list"),
+        ([], None, None, None, "all `q_inf`, `q_sup` and `distance` attributes must be a numerical"),
+        ([], 1, None, None, "all `q_inf`, `q_sup` and `distance` attributes must be a numerical"),
+        ([], 1, 1, None, "all `q_inf`, `q_sup` and `distance` attributes must be a numerical"),
+    ]
+)
+def test_compute_stat_bound_crash(iterator, q_inf, q_sup, distance, bounds):
+    with pytest.raises(TypeError) as e:
+        _ = compute_stat_bound(iterator, q_inf, q_sup, distance)
+    assert str(e.value) == bounds
+
+@pytest.mark.usefixtures("bounds_variables")
+def test_compute_stat_bound(bounds_variables):
+    expected_result = bounds_variables.get("bounds")
+    iterator = bounds_variables.get("iterator")
+    computed_result = compute_stat_bound(iterator)
+    assert all(
+        [
+            np.isclose(
+                expected_result[idx],
+                computed_result[idx],
+                atol=TOLERANCE,
+            ) for idx in range(len(computed_result))
+        ]
+    )
+
+"""
+def compute_avg_value(iterator: List[float]) -> float:
+    return np.mean(iterator)
+"""
+
+@pytest.mark.parametrize(
+    "iterator, avg",
+    [
+        (None, "`iterator` attribute must be a list or a tuple"),
+        ("", "`iterator` attribute must be a list or a tuple"),
+        ([1, 2, np.nan], "all elements of `iterator` attribute must be numerical"),
+        ([1, 2, None], "all elements of `iterator` attribute must be numerical"),
+    ]
+)
+def test_compute_avg_value_crash(iterator, avg):
+    with pytest.raises((TypeError, ValueError)) as e:
+        _ = compute_avg_value(iterator)
+    assert str(e.value) == avg
+
+@pytest.mark.usefixtures("avg_variables")
+def test_compute_avg_value(avg_variables):
+    expected_result = avg_variables.get("avg")
+    iterator = avg_variables.get("iterator")
+    computed_result = compute_avg_value(iterator)
+    assert np.isclose(expected_result, computed_result)
