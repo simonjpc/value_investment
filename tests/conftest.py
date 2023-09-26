@@ -22,4 +22,6 @@ from tests.fixtures.mockups import (
     rates_of_change_variables,
     inversion_variables,
     drop_nulls_variables,
+    bounds_variables,
+    avg_variables,
 )

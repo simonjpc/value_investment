@@ -918,3 +918,17 @@ def drop_nulls_variables():
         "iterator": [None, np.nan, 55689016, 41435577, 45719024],
         "iterator_wo_null" : [55689016, 41435577, 45719024],
     }
+
+@pytest.fixture
+def bounds_variables():
+    return {
+        "iterator" : [-200, 100, 101, 102, 103, 108, 180, 500],
+        "bounds" : (25.0, 201.75),
+    }
+
+@pytest.fixture
+def avg_variables():
+    return {
+        "iterator": [59557767, 55689016, 41435577, 45719023],
+        "avg" : 50600345.75,
+    }
