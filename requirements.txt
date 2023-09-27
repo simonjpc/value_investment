@@ -39,3 +39,4 @@ traitlets
 urllib3
 wcwidth
 xlrd
+-e .
