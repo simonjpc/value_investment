@@ -110,12 +110,7 @@ def test_invert_iterator(inversion_variables):
     computed_result = invert_iterator(inversion_variables.get("iterator"))
     assert expected_result == computed_result
 
-"""
-def drop_nans(iterator: List[float]) -> List[float]:
-    iterator_wo_nans = np.array(iterator)
-    iterator_wo_nans = iterator_wo_nans[~np.isnan(iterator_wo_nans)]
-    return iterator_wo_nans.tolist()
-"""
+
 @pytest.mark.parametrize(
     "iterator, iterator_wo_nans",
     [
@@ -138,16 +133,6 @@ def test_drop_nulls(drop_nulls_variables):
     computed_result = drop_nulls(iterator[1:])
     assert expected_result == computed_result
 
-
-"""def compute_stat_bound(
-    iterator: List[float], q_inf: float = 0.25, q_sup: float = 0.75, distance: int = 3
-) -> Tuple[float, float]:
-    q1 = np.quantile(iterator, q_inf)
-    q3 = np.quantile(iterator, q_sup)
-    iqr = q3 - q1
-    lower_bound = q1 - distance*iqr
-    upper_bound = q3 + distance*iqr
-    return lower_bound, upper_bound"""
 
 @pytest.mark.parametrize(
     "iterator, q_inf, q_sup, distance, bounds",
@@ -201,16 +186,6 @@ def test_compute_avg_value(avg_variables):
     assert np.isclose(expected_result, computed_result)
 
 
-"""def get_date_from_dictionary(
-    dictionary: Dict[str, Any], date_key: str
-) -> pd.Timestamp:
-    value = dictionary.get(date_key, "")
-    if value:
-        return pd.to_datetime(value)
-    else:
-        raise ValueError(f"No '{key}' key found in the dictionary")
-"""
-
 @pytest.mark.parametrize(
     "dictionary, date_key, datetime",
     [
@@ -230,12 +205,6 @@ def test_get_date_from_dictionary(get_date_variables):
     computed_result = get_date_from_dictionary(get_date_variables, "date_key")
     assert expected_result == computed_result
 
-
-"""
-def handling_negative_vals(iterator: List[float]) -> List[float]:
-    positive_historical_pe = [max(val, 0) for val in iterator]
-    return positive_historical_pe
-"""
 
 @pytest.mark.parametrize(
     "iterator, pe",
