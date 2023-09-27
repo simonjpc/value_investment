@@ -90,7 +90,8 @@ def compute_pex_value(
     future_pe: float,
     years: int,
 )  -> float:
-    if not isinstance(deco, dict):
+    print(type(deco))
+    if not isinstance(deco, (dict, pd.Series)):
         raise ValueError("`deco` attribute must be a dictionary")
     if EPS_KEY not in deco:
         raise ValueError("`eps` key is expected in `deco`")
@@ -103,7 +104,7 @@ def compute_pex_value(
     return pfv
 
 def compute_tangible_book_value(deco: Dict[str, Any]) -> float:
-    if not isinstance(deco, dict):
+    if not isinstance(deco, (dict, pd.Series)):
         raise AttributeError("`deco` attribute must be a dictionary")
     intangible_assets = deco.get(
         GOODWILL_AND_INTANGILE_ASSETS_KEY,
@@ -151,7 +152,7 @@ def compute_discounted_tangible_book_value_ps(deco: Dict[str, Any]) -> float:
     return tangible_book_value / nb_outs_shares
 
 def compute_pe_ratio(deco: Dict[str, Any]) -> float:
-    if not isinstance(deco, dict):
+    if not isinstance(deco, (dict, pd.Series)):
         raise AttributeError("`deco` attribute must be a dictionary")
     pps = deco.get(REPORTING_DATE_PRICE_COL, 0)
     eps = deco.get(EPS_KEY, 0)
@@ -169,7 +170,7 @@ def compute_de_ratio3(deco) -> float:
     return deco.get("totalDebt", 1e6) / deco.get("totalStockholdersEquity", 1e-6)
 
 def compute_de_ratio(deco: Dict[str, Any], obligation_type: str) -> float:
-    if not isinstance(deco, dict):
+    if not isinstance(deco, (dict, pd.Series)):
         raise AttributeError("`deco` attribute must be a dictionary")
     if not isinstance(obligation_type, str):
         raise AttributeError("`obligation_type` attribute must be a string")
