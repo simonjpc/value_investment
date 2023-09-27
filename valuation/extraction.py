@@ -5,7 +5,7 @@ import json
 import requests
 import pandas as pd
 
-KEY = os.getenv("VALUATION_KEY")
+KEY = os.environ.get("VALUATION_KEY")
 
 def get_income_stmt_info(ticker: str, nb_years: int = 10) -> List[Dict[str, Any]]:
     if not isinstance(ticker, str):
