@@ -24,4 +24,6 @@ from tests.fixtures.mockups import (
     drop_nulls_variables,
     bounds_variables,
     avg_variables,
+    get_date_variables,
+    negative_vals_variables,
 )

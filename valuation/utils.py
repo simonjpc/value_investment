@@ -86,18 +86,25 @@ def compute_avg_value(iterator: List[float]) -> float:
         raise ValueError("all elements of `iterator` attribute must be numerical")
     return np.mean(iterator)
 
-def extract_key_from_dictionary(
-    dictionary: Dict[str, Any], key: str
+def get_date_from_dictionary(
+    dictionary: Dict[str, Any], date_key: str
 ) -> pd.Timestamp:
-    value = dictionary.get(key, "")
+    if not isinstance(dictionary, dict):
+        raise TypeError("`dictionary` attribute must be a dictionary")
+    value = dictionary.get(date_key, "")
     if value:
         return pd.to_datetime(value)
     else:
-        raise ValueError(f"No '{key}' key found in the dictionary")
+        raise ValueError(f"No '{date_key}' key found in the dictionary")
 
 # ex handling_negative_pe function
 def handling_negative_vals(iterator: List[float]) -> List[float]:
-    positive_historical_pe = [max(val, 0) for val in iterator]
+    if not isinstance(iterator, (tuple, list)):
+        raise TypeError("`iterator` must be a list or tuple")
+    try:
+        positive_historical_pe = [max(val, 0) for val in iterator]
+    except:
+        raise TypeError("all elements in iterator must be numerical")
     return positive_historical_pe
 
 

@@ -1,4 +1,5 @@
 import pytest
+import pandas as pd
 import numpy as np
 from valuation.utils import (
     get_key_from_iterator,
@@ -8,6 +9,8 @@ from valuation.utils import (
     drop_nulls,
     compute_stat_bound,
     compute_avg_value,
+    get_date_from_dictionary,
+    handling_negative_vals,
 )
 
 TOLERANCE = 1e-3
@@ -175,10 +178,6 @@ def test_compute_stat_bound(bounds_variables):
         ]
     )
 
-"""
-def compute_avg_value(iterator: List[float]) -> float:
-    return np.mean(iterator)
-"""
 
 @pytest.mark.parametrize(
     "iterator, avg",
@@ -200,3 +199,58 @@ def test_compute_avg_value(avg_variables):
     iterator = avg_variables.get("iterator")
     computed_result = compute_avg_value(iterator)
     assert np.isclose(expected_result, computed_result)
+
+
+"""def get_date_from_dictionary(
+    dictionary: Dict[str, Any], date_key: str
+) -> pd.Timestamp:
+    value = dictionary.get(date_key, "")
+    if value:
+        return pd.to_datetime(value)
+    else:
+        raise ValueError(f"No '{key}' key found in the dictionary")
+"""
+
+@pytest.mark.parametrize(
+    "dictionary, date_key, datetime",
+    [
+        (None, None, "`dictionary` attribute must be a dictionary"),
+        ("", None, "`dictionary` attribute must be a dictionary"),
+        ({}, "date_key", "No 'date_key' key found in the dictionary")
+    ]
+)
+def test_get_date_from_dictionary_crash(dictionary, date_key, datetime):
+    with pytest.raises((TypeError, ValueError)) as e:
+        _ = get_date_from_dictionary(dictionary, date_key)
+    assert str(e.value) == datetime
+
+@pytest.mark.usefixtures("get_date_variables")
+def test_get_date_from_dictionary(get_date_variables):
+    expected_result = pd.to_datetime("2020-06-30")
+    computed_result = get_date_from_dictionary(get_date_variables, "date_key")
+    assert expected_result == computed_result
+
+
+"""
+def handling_negative_vals(iterator: List[float]) -> List[float]:
+    positive_historical_pe = [max(val, 0) for val in iterator]
+    return positive_historical_pe
+"""
+
+@pytest.mark.parametrize(
+    "iterator, pe",
+    [
+        (None, "`iterator` must be a list or tuple"),
+        ([-1, 1, None], "all elements in iterator must be numerical")
+    ]
+)
+def test_handling_negative_vals_crash(iterator, pe):
+    with pytest.raises(TypeError) as e:
+        _ = handling_negative_vals(iterator)
+    assert str(e.value) == pe
+
+@pytest.mark.usefixtures("negative_vals_variables")
+def test_handling_negative_vals(negative_vals_variables):
+    expected_result = negative_vals_variables.get("iter_wo_negative_vals")
+    computed_result = handling_negative_vals(negative_vals_variables.get("iter_w_negative_vals"))
+    assert expected_result == computed_result

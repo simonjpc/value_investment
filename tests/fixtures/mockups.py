@@ -932,3 +932,16 @@ def avg_variables():
         "iterator": [59557767, 55689016, 41435577, 45719023],
         "avg" : 50600345.75,
     }
+
+@pytest.fixture
+def get_date_variables():
+    return {
+        "date_key": "2020-06-30",
+    }
+
+@pytest.fixture
+def negative_vals_variables():
+    return {
+        "iter_w_negative_vals": [-1, 1, 2],
+        "iter_wo_negative_vals": [0, 1, 2],
+    }
