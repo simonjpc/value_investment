@@ -945,3 +945,56 @@ def negative_vals_variables():
         "iter_w_negative_vals": [-1, 1, 2],
         "iter_wo_negative_vals": [0, 1, 2],
     }
+
+@pytest.fixture
+def growth_function_variables():
+    return {
+        "pos_pos1": {
+            "previous": 20000,
+            "current": 60000,
+            "nb_years": 5,
+            "growth": 0.246,
+        },
+        "pos_pos2": {
+            "previous": 60000,
+            "current": 20000,
+            "nb_years": 5,
+            "growth": -0.197,
+        },
+        "pos_neg1": {
+            "previous": 20000,
+            "current": -60000,
+            "nb_years": 5,
+            "growth": -0.275,
+        },
+        "pos_neg2": {
+            "previous": 60000,
+            "current": -20000,
+            "nb_years": 5,
+            "growth": -0.156,
+        },
+        "neg_pos1": {
+            "previous": -20000,
+            "current": 60000,
+            "nb_years": 5,
+            "growth": 0.379,
+        },
+        "neg_pos2": {
+            "previous": -60000,
+            "current": 20000,
+            "nb_years": 5,
+            "growth": 0.185,
+        },
+        "neg_neg1": {
+            "previous": -20000,
+            "current": -60000,
+            "nb_years": 5,
+            "growth": -0.197,
+        },
+        "neg_neg2": {
+            "previous": -60000,
+            "current": -20000,
+            "nb_years": 5,
+            "growth": 0.246,
+        },
+    }
