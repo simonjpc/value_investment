@@ -111,7 +111,7 @@ def handling_negative_vals(iterator: List[float]) -> List[float]:
 def plot_indicators(df: pd.DataFrame) -> None:
     num_cols = df.shape[1]
     num_plots = min(num_cols, 13)  # Limit to 13 subplots or the number of columns
-    _, ax = plt.subplots(1, num_plots, figsize=(26, 3))
+    _, ax = plt.subplots(1, num_plots, figsize=(26, 2.5))
 
     for i in range(num_plots):
         col_name = COLS_TO_PLOT[i]

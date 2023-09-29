@@ -16,6 +16,8 @@ from valuation.eps_multiple import (
     get_reporting_window,
     get_price_history,
     compute_price_at_reporting_date,
+    growth_function,
+    compute_growth,
 )
 from valuation.constants import (
     TOTAL_ASSETS_KEY,
@@ -465,3 +467,86 @@ def test_compute_price_at_reporting_date(reporting_date_price_variables):
         key="high"
         )
     assert expected_prices == computed_prices
+
+
+"""def growth_function(current: float, previous: float, nb_years: int) -> float:
+    growth_value = round((current / previous) ** (1/nb_years) - 1, 4)
+    return growth_value"""
+
+@pytest.mark.parametrize(
+    "current, previous, nb_years, growth",
+    [
+        (None, None, None, "all attributes must be numerical"),
+        (1, None, None, "all attributes must be numerical"),
+        (1, 1, None, "all attributes must be numerical"),
+        (1, 0, 5, "all attributes must be positive"),
+    ]
+)
+def test_growth_function_crash(current, previous, nb_years, growth):
+    with pytest.raises((TypeError, ValueError)) as e:
+        _ = growth_function(current, previous, nb_years)
+    assert str(e.value) == growth
+
+@pytest.mark.usefixtures("growth_function_variables")
+def test_growth_function(growth_function_variables):
+    attrs = growth_function_variables.get("pos_pos1")
+    current, previous, nb_years, expected_growth = (
+        attrs.get("current"),
+        attrs.get("previous"),
+        attrs.get("nb_years"),
+        attrs.get("growth"),
+    )
+    computed_growth = growth_function(current, previous, nb_years)
+    assert np.isclose(expected_growth, computed_growth, atol=TOLERANCE)
+
+
+"""def compute_growth(current: float, previous: float, nb_years: int) -> float:
+    if current == 0:
+        current = 1e-6
+    if previous == 0:
+        previous = 1e-6
+    if current > 0 and previous < 0:
+        gap = current - previous
+        current += gap
+        previous += gap
+    elif current < 0 and previous > 0:
+        gap = previous - current
+        current += gap
+        previous += gap
+    elif current < 0 and previous < 0:
+        previous, current = current, previous
+        previous = abs(previous)
+        current = abs(current)
+    growth = growth_function(current, previous, nb_years)
+    return growth"""
+
+@pytest.mark.parametrize(
+    "current, previous, nb_years, growth",
+    [
+        (None, None, None, "all attributes must be numerical"),
+        (1, None, None, "all attributes must be numerical"),
+        (1, 1, None, "all attributes must be numerical"),
+    ]
+)
+def test_compute_growth_crash(current, previous, nb_years, growth):
+    with pytest.raises(TypeError) as e:
+        _ = compute_growth(current, previous, nb_years)
+    assert str(e.value) == growth
+
+@pytest.mark.usefixtures("growth_function_variables")
+def test_compute_growth(growth_function_variables):
+    for combination in (
+        "pos_neg1", "pos_neg2", "neg_pos1", "neg_pos2", "neg_neg1", "neg_neg2", "pos_pos1", "pos_pos2"):
+        attrs = growth_function_variables.get(combination)
+        current, previous, nb_years, expected_growth = (
+            attrs.get("current"),
+            attrs.get("previous"),
+            attrs.get("nb_years"),
+            attrs.get("growth"),
+        )
+        computed_growth = compute_growth(current, previous, nb_years)
+        assert np.isclose(expected_growth, computed_growth, atol=TOLERANCE)
+
+    expected_growth = 113.869
+    computed_growth = compute_growth(current, 0, nb_years)
+    assert np.isclose(expected_growth, computed_growth, atol=TOLERANCE)

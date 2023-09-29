@@ -90,7 +90,6 @@ def compute_pex_value(
     future_pe: float,
     years: int,
 )  -> float:
-    print(type(deco))
     if not isinstance(deco, (dict, pd.Series)):
         raise ValueError("`deco` attribute must be a dictionary")
     if EPS_KEY not in deco:
@@ -196,7 +195,7 @@ def get_date_range(
     return str(window_start), str(window_end)
 
 def get_reporting_window(deco):
-    if not isinstance(deco, dict):
+    if not isinstance(deco, (dict, pd.Series)):
         raise AttributeError("`deco attribute must be a dictionary`")
     filling_date = deco.get(FILLING_DATE_KEY, None)
     
@@ -232,7 +231,7 @@ def compute_price_at_reporting_date(
 ) -> float:
     if not isinstance(prices, list):
         raise AttributeError("`prices` attribute must be a list")
-    if not isinstance(filling_date_flag, bool):
+    if not isinstance(filling_date_flag, (bool, np.bool_)):
         raise AttributeError("`filling_date_flag` attribute must be boolean")
     if not isinstance(key, str):
         raise AttributeError("`key` attribute must be a string")
@@ -245,6 +244,37 @@ def compute_price_at_reporting_date(
     else:
         avg_price_at_report = np.Inf
     return avg_price_at_report
+
+def growth_function(current: float, previous: float, nb_years: int) -> float:
+    if not all([isinstance(var, (int, float)) for var in (current, previous, nb_years)]):
+        raise TypeError("all attributes must be numerical")
+    if not all([var > 0 for var in (current, previous, nb_years)]):
+        raise ValueError("all attributes must be positive")
+    growth_value = round((current / previous) ** (1/nb_years) - 1, 4)
+    return growth_value
+
+def compute_growth(current: float, previous: float, nb_years: int) -> float:
+    if not all([isinstance(var, (int, float)) for var in (current, previous, nb_years)]):
+        raise TypeError("all attributes must be numerical")
+    if current == 0:
+        current = 1e-6
+    if previous == 0:
+        previous = 1e-6
+    if current > 0 and previous < 0:
+        gap = 2*abs(previous)
+        #gap = current - previous
+        current += gap
+        previous += gap
+    elif current < 0 and previous > 0:
+        gap = previous - current
+        current += gap
+        previous += gap
+    elif current < 0 and previous < 0:
+        previous, current = current, previous
+        previous = abs(previous)
+        current = abs(current)
+    growth = growth_function(current, previous, nb_years)
+    return growth
 
 # DEPRICATED
 def compute_price_at_reporting_date_OLD(deco, ticker):
