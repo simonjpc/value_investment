@@ -1016,8 +1016,10 @@ def ncav_variables():
         "deco": {
             "totalCurrentAssets": 7320000,
             "totalLiabilities": 4190000,
+            "weightedAverageShsOutDil": 12100000,
         },
         "ncav": 3130000,
+        "ncavps": 0.259,
     }
 
 @pytest.fixture()
@@ -1029,6 +1031,14 @@ def liqv_variables():
             "inventory": 3640000,
             "propertyPlantEquipmentNet": 8500000,
             "totalLiabilities": 4190000,
+            "weightedAverageShsOutDil": 12100000,
         },
         "liqv": 21096200,
+        "liqvps": 1.743,
+    }
+
+@pytest.fixture
+def price_from_dict_variables():
+    return {
+        "price": 2.08,
     }
