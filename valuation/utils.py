@@ -2,7 +2,7 @@ import numpy as np
 import pandas as pd
 from typing import List, Dict, Any, Tuple
 import matplotlib.pyplot as plt
-from valuation.constants import COLS_TO_PLOT, COLS_WITH_SAME_SCALE
+from valuation.constants import COLS_TO_PLOT, COLS_WITH_SAME_SCALE, SUBPLOT_NAMES
 
 def get_key_from_iterator(
     iterator: List[Dict[str, Any]], key: str,
@@ -115,7 +115,7 @@ def plot_indicators(df: pd.DataFrame) -> None:
 
     for i in range(num_plots):
         col_name = COLS_TO_PLOT[i]
-        df[col_name].plot.bar(ax=ax[i], title=col_name)
+        df[col_name].plot.bar(ax=ax[i], title=SUBPLOT_NAMES[col_name])
         for cols in COLS_WITH_SAME_SCALE:
             if col_name in cols:#["totalAssets", "totalLiabilities", "de_ratio1", "de_ratio2", "de_ratio3"]:
                 #min_ylim, max_ylim = df[col_name].min(), df[col_name].max()

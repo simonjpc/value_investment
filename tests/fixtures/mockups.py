@@ -998,3 +998,37 @@ def growth_function_variables():
             "growth": 0.246,
         },
     }
+
+
+@pytest.fixture()
+def current_ratio_variables():
+    return {
+        "deco": {
+            "totalCurrentAssets": 7320000,
+            "totalCurrentLiabilities": 2290000,
+        },
+        "current_ratio": 3.197,
+    }
+
+@pytest.fixture()
+def ncav_variables():
+    return  {
+        "deco": {
+            "totalCurrentAssets": 7320000,
+            "totalLiabilities": 4190000,
+        },
+        "ncav": 3130000,
+    }
+
+@pytest.fixture()
+def liqv_variables():
+    return  {
+        "deco": {
+            "cashAndCashEquivalents": 11300000,
+            "netReceivables": 7634000,
+            "inventory": 3640000,
+            "propertyPlantEquipmentNet": 8500000,
+            "totalLiabilities": 4190000,
+        },
+        "liqv": 21096200,
+    }
