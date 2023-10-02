@@ -6,6 +6,7 @@ INTANGIBLE_ASSETS_KEY = "intangibleAssets"
 TOTAL_LIAB_KEY = "totalLiabilities"
 GOODWILL_AND_INTANGILE_ASSETS_KEY = "goodwillAndIntangibleAssets"
 SHARES_OUTS_KEY = "weightedAverageShsOutDil"
+CASH_AND_EQUIV_KEY  = "cashAndCashEquivalents"
 NET_RECEIVABLES_KEY = "netReceivables"
 INVENTORY_KEY = "inventory"
 PPE_KEY = "propertyPlantEquipmentNet"
@@ -55,6 +56,22 @@ COLS_TO_PLOT = [
         "de_ratio3",
     ]
 COLS_WITH_SAME_SCALE = [
-    ("totalAssets", "totalLiabilities"),
-    ("de_ratio1", "de_ratio2", "de_ratio3"),
+    ["totalAssets", "totalLiabilities"],
+    ["de_ratio1", "de_ratio2", "de_ratio3"],
 ]
+
+SUBPLOT_NAMES = {
+    "pfvps": "pfvps",
+    "pe_ratio": "pe_ratio",
+    "revenue": "revenue",
+    "netIncome": "net income",
+    "eps": "eps",
+    "totalAssets": "total assets",
+    "totalLiabilities": "total liab",
+    "totalEquity": "total equity",
+    "tangible_book_value_ps": "tangible bv",
+    "weightedAverageShsOutDil": "outs shares",
+    "de_ratio1": "total liab / tot equity",
+    "de_ratio2": "curr liab / tot equity",
+    "de_ratio3": "net debt / tot equity",
+}

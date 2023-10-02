@@ -27,4 +27,7 @@ from tests.fixtures.mockups import (
     get_date_variables,
     negative_vals_variables,
     growth_function_variables,
+    current_ratio_variables,
+    ncav_variables,
+    liqv_variables,
 )
