@@ -30,4 +30,5 @@ from tests.fixtures.mockups import (
     current_ratio_variables,
     ncav_variables,
     liqv_variables,
+    price_from_dict_variables,
 )
