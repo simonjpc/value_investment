@@ -1,4 +1,5 @@
 import numpy as np
+import pandas as pd
 from typing import Dict, Any
 from valuation.constants import (
     TOTAL_CURR_ASSETS_KEY,
@@ -12,11 +13,12 @@ from valuation.constants import (
     PPE_FACTOR_KEY,
     PPE_KEY,
     TOTAL_LIAB_KEY,
+    PRICE_KEY,
 )
 
 
 def compute_current_ratio(deco: Dict[str, Any]) -> float:
-    if not isinstance(deco, dict):
+    if not isinstance(deco, (dict, pd.Series)):
         raise TypeError("`deco` attribute must be a dictionary")
     current_assets = deco.get(TOTAL_CURR_ASSETS_KEY, 0)
     current_liab = deco.get(TOTAL_CURR_LIAB_KEY, 0)
@@ -25,12 +27,12 @@ def compute_current_ratio(deco: Dict[str, Any]) -> float:
     return current_assets / current_liab
 
 def compute_ncav(deco: Dict[str, Any]) -> float:
-    if not isinstance(deco, dict):
+    if not isinstance(deco, (dict, pd.Series)):
         raise TypeError("`deco` attribute must be a dictionary")
     return deco.get(TOTAL_CURR_ASSETS_KEY, 0) - deco.get(TOTAL_LIAB_KEY, 0)
 
 def compute_liqv(deco: Dict[str, Any], factors: Dict[str, float]) -> float:
-    if not isinstance(deco, dict):
+    if not isinstance(deco, (dict, pd.Series)):
         raise TypeError("`deco` attribute must be a dictionary")
     if not isinstance(factors, dict):
         raise TypeError("`factors` attribute must be a dictionary")
@@ -52,18 +54,18 @@ def compute_liqv(deco: Dict[str, Any], factors: Dict[str, float]) -> float:
     return factored_assets - total_liab
 
 def compute_ncavps(deco: Dict[str, Any]) -> float:
-    if not isinstance(deco, dict):
+    if not isinstance(deco, (dict, pd.Series)):
         raise TypeError("`deco` attribute must be a dictionary")
-    shares_outs = deco.get("weightedAverageShsOutDil", 0)
+    shares_outs = deco.get(SHARES_OUTS_KEY, 0)
     if shares_outs == 0:
         return -np.Inf
     ncav = compute_ncav(deco)
     return ncav / shares_outs
 
 def compute_liqvps(deco, factors):
-    if not isinstance(deco, dict):
+    if not isinstance(deco, (dict, pd.Series)):
         raise TypeError("`deco` attribute must be a dictionary")
-    shares_outs = deco.get("weightedAverageShsOutDil", 0)
+    shares_outs = deco.get(SHARES_OUTS_KEY, 0)
     if shares_outs == 0:
         return -np.Inf
     liqv = compute_liqv(deco, factors)
@@ -72,9 +74,9 @@ def compute_liqvps(deco, factors):
 def positive_prelim_ncav(deco: Dict[str, Any]) -> bool:
     if not isinstance(deco, dict):
         raise TypeError("`deco` attribute must be a dictionary")
-    return deco.get("totalCurrentAssets", 0) - deco.get("totalLiabilities", 0) > 0
+    return deco.get(TOTAL_CURR_ASSETS_KEY, 0) - deco.get(TOTAL_LIAB_KEY, 0) > 0
 
 def get_price_from_dict(deco: Dict[str, Any]) -> float:
     if not isinstance(deco, dict):
         raise TypeError("`deco` attribute must be a dictionary")
-    return deco.get("price", None)
+    return deco.get(PRICE_KEY, None)
