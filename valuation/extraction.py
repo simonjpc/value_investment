@@ -106,7 +106,7 @@ def get_current_price(ticker: str) -> float:
     
     params = {
         "limit": 1,
-        "apikey": KEY
+        "apikey": KEY,
     }
     
     try:

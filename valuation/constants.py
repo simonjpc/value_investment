@@ -18,6 +18,7 @@ EXPECTED_OBLIGATIONS = (TOTAL_CURR_LIAB_KEY, TOTAL_LIAB_KEY, TOTAL_DEBT_KEY)
 DATE_KEY = "date"
 FILLING_DATE_KEY = "fillingDate"
 HIST_PRICES_KEY = "historical"
+PRICE_KEY = "price"
 
 # Present faire value constants
 GROWTH_RATE_CAP = 0.40
@@ -40,7 +41,7 @@ CURRENT_ASSETS_FACTORS = {
 
 # Columns constants
 REPORTING_DATE_PRICE_COL = "reporting_date_price"
-COLS_TO_PLOT = [
+COLS_TO_PLOT_EPSX = [
         "pfvps",
         "pe_ratio",
         "revenue",
@@ -55,13 +56,32 @@ COLS_TO_PLOT = [
         "de_ratio2",
         "de_ratio3",
     ]
+COLS_TO_PLOT_NCAV = [
+    "ncavps",
+    "liqvps",
+    "totalCurrentAssets",
+    "totalCurrentLiabilities",
+    "current_ratio",
+    "totalAssets",
+    "totalLiabilities",
+    "weightedAverageShsOutDil",
+    "de_ratio1",
+    "de_ratio2",
+    "de_ratio3",
+]
 COLS_WITH_SAME_SCALE = [
+    ["totalCurrentAssets", "totalCurrentLiabilities"],
     ["totalAssets", "totalLiabilities"],
     ["de_ratio1", "de_ratio2", "de_ratio3"],
 ]
 
 SUBPLOT_NAMES = {
+    "ncavps": "ncavps",
+    "liqvps": "liqvps",
     "pfvps": "pfvps",
+    "totalCurrentAssets": "current assets",
+    "totalCurrentLiabilities": "current liab",
+    "current_ratio": "current ratio",
     "pe_ratio": "pe_ratio",
     "revenue": "revenue",
     "netIncome": "net income",

@@ -2,7 +2,7 @@ import numpy as np
 import pandas as pd
 from typing import List, Dict, Any, Tuple
 import matplotlib.pyplot as plt
-from valuation.constants import COLS_TO_PLOT, COLS_WITH_SAME_SCALE, SUBPLOT_NAMES
+from valuation.constants import COLS_TO_PLOT_EPSX, COLS_TO_PLOT_NCAV, COLS_WITH_SAME_SCALE, SUBPLOT_NAMES
 
 def get_key_from_iterator(
     iterator: List[Dict[str, Any]], key: str,
@@ -108,13 +108,32 @@ def handling_negative_vals(iterator: List[float]) -> List[float]:
     return positive_historical_pe
 
 
-def plot_indicators(df: pd.DataFrame) -> None:
+def plot_indicators_epsx(df: pd.DataFrame) -> None:
     num_cols = df.shape[1]
     num_plots = min(num_cols, 13)  # Limit to 13 subplots or the number of columns
     _, ax = plt.subplots(1, num_plots, figsize=(26, 2.5))
 
     for i in range(num_plots):
-        col_name = COLS_TO_PLOT[i]
+        col_name = COLS_TO_PLOT_EPSX[i]
+        df[col_name].plot.bar(ax=ax[i], title=SUBPLOT_NAMES[col_name])
+        for cols in COLS_WITH_SAME_SCALE:
+            if col_name in cols:#["totalAssets", "totalLiabilities", "de_ratio1", "de_ratio2", "de_ratio3"]:
+                #min_ylim, max_ylim = df[col_name].min(), df[col_name].max()
+                min_ylim = df[cols].min().min() #min([df[col].min() for col in cols])
+                max_ylim = df[cols].max().max() #max([df[col].max() for col in cols])
+                ax[i].set_ylim([min_ylim, max_ylim])
+                break
+
+    plt.tight_layout()
+    plt.show()
+
+def plot_indicators_ncav(df: pd.DataFrame) -> None:
+    num_cols = df.shape[1]
+    num_plots = min(num_cols, 11)  # Limit to 11 subplots or the number of columns
+    _, ax = plt.subplots(1, num_plots, figsize=(26, 3))
+
+    for i in range(num_plots):
+        col_name = COLS_TO_PLOT_NCAV[i]
         df[col_name].plot.bar(ax=ax[i], title=SUBPLOT_NAMES[col_name])
         for cols in COLS_WITH_SAME_SCALE:
             if col_name in cols:#["totalAssets", "totalLiabilities", "de_ratio1", "de_ratio2", "de_ratio3"]:
