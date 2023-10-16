@@ -223,3 +223,8 @@ def test_handling_negative_vals(negative_vals_variables):
     expected_result = negative_vals_variables.get("iter_wo_negative_vals")
     computed_result = handling_negative_vals(negative_vals_variables.get("iter_w_negative_vals"))
     assert expected_result == computed_result
+
+"""
+create test for following functions : 
+df_to_db
+"""
