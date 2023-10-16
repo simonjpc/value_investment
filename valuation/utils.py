@@ -108,6 +108,12 @@ def handling_negative_vals(iterator: List[float]) -> List[float]:
     return positive_historical_pe
 
 
+def dict_to_df(fa_info: Dict[str, Any]) -> pd.DataFrame:
+    if not isinstance(fa_info, dict):
+        raise TypeError("`fa_info` must be a dictionary")
+    return pd.DataFrame(fa_info)
+
+    
 def plot_indicators_epsx(df: pd.DataFrame) -> None:
     num_cols = df.shape[1]
     num_plots = min(num_cols, 13)  # Limit to 13 subplots or the number of columns

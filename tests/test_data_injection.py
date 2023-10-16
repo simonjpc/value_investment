@@ -1,0 +1,23 @@
+from valuation.data_injection import Injector
+
+"""
+# The test for this class is TODO
+class Injector:
+    def __init__(self):
+        self.user = os.environ.get("DB_USER")
+        self.password = os.environ.get("DB_PWD")
+        self.host = os.environ.get("DB_HOST")
+        self.port = os.environ.get("DB_PORT")
+        self.db = os.environ.get("DB_NAME")
+
+    def get_dbparams(self,) -> Dict[str, str]:
+        pass
+
+    def df_to_db(
+        self,
+        df: pd.DataFrame,
+        table: str,
+        conn: psycopg2.connection,
+    ) -> None:
+        pass
+"""
