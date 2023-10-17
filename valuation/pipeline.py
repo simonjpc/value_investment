@@ -28,8 +28,6 @@ def single_ticker_pipeline(ticker):
     log.info("balance sheet & income stmt df cols modified with suffixes")
     financial_info = pd.concat([balance_sheet_df, income_stmt_df], axis=1)
     financial_info = financial_info.reset_index()
-    #print(financial_info.head())
-    #quit()
 
     log.info("concatenation succeeded.")
     injector = Injector()
