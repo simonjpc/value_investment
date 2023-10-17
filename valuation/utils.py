@@ -108,8 +108,8 @@ def handling_negative_vals(iterator: List[float]) -> List[float]:
     return positive_historical_pe
 
 
-def dict_to_df(fa_info: Dict[str, Any]) -> pd.DataFrame:
-    if not isinstance(fa_info, dict):
+def dict_to_df(fa_info: List[Dict[str, Any]]) -> pd.DataFrame:
+    if not isinstance(fa_info, list):
         raise TypeError("`fa_info` must be a dictionary")
     return pd.DataFrame(fa_info)
 
@@ -151,3 +151,12 @@ def plot_indicators_ncav(df: pd.DataFrame) -> None:
 
     plt.tight_layout()
     plt.show()
+
+def drop_df_cols(df: pd.DataFrame, cols: List[str]) -> pd.DataFrame:
+    df = df.drop(columns=cols, axis=1)
+    return df
+
+
+def add_suffix_to_cols(df: pd.DataFrame, suffix: str) -> pd.DataFrame:
+    df.columns = [col+suffix for col in df.columns]
+    return df

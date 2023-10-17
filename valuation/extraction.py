@@ -7,17 +7,18 @@ import pandas as pd
 
 KEY = os.environ.get("VALUATION_KEY")
 
-def get_income_stmt_info(ticker: str, nb_years: int = 10) -> List[Dict[str, Any]]:
+def get_income_stmt_info(ticker: str, period: str, limit: int = 10) -> List[Dict[str, Any]]:
     if not isinstance(ticker, str):
         raise AttributeError("`ticker` attribute must be a string")
-    if not isinstance(nb_years, int):
-        raise AttributeError("`nb_years` attribute must be an integer")
+    if not isinstance(limit, int):
+        raise AttributeError("`limit` attribute must be an integer")
 
     url_income_stmt = f"{API_BASE_PATH}/income-statement/{ticker}"
 
     params = {
-        "limit": nb_years,
+        "limit": limit,
         "apikey": KEY,
+        "period": period,
     }
 
     try:
@@ -32,17 +33,18 @@ def get_income_stmt_info(ticker: str, nb_years: int = 10) -> List[Dict[str, Any]
 
     return [] # Return an empty list if we fall in an exception
 
-def get_balance_sheet_info(ticker: str, nb_years: int = 10) -> List[Dict[str, Any]]:
+def get_balance_sheet_info(ticker: str, period: str, limit: int = 10) -> List[Dict[str, Any]]:
     if not isinstance(ticker, str):
         raise TypeError("`ticker` attribute must be a string")
-    if not isinstance(nb_years, int):
+    if not isinstance(limit, int):
         raise TypeError("`nb_years` attribute must be an integer")
         
     url_balance_sheet = f"{API_BASE_PATH}/balance-sheet-statement/{ticker}"
 
     params ={
-        "limit": nb_years,
+        "limit": limit,
         "apikey": KEY,
+        "period": period,
     }
 
     try:
