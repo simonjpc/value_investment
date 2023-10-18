@@ -31,4 +31,5 @@ from tests.fixtures.mockups import (
     ncav_variables,
     liqv_variables,
     price_from_dict_variables,
+    ticker_batches_variables,
 )

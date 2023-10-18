@@ -1042,3 +1042,17 @@ def price_from_dict_variables():
     return {
         "price": 2.08,
     }
+
+@pytest.fixture
+def ticker_batches_variables():
+    return {
+        "tickers" : ["a", "b", "c", "d", "e", "f", "g", "h", "i"],
+        "batch_size": 2,
+        "batches": [
+            ["a", "b"],
+            ["c", "d"],
+            ["e", "f"],
+            ["g", "h"],
+            ["i"],
+        ]
+    }

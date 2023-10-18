@@ -11,6 +11,7 @@ from valuation.utils import (
     compute_avg_value,
     get_date_from_dictionary,
     handling_negative_vals,
+    batch_tickers,
 )
 
 TOLERANCE = 1e-3
@@ -228,3 +229,27 @@ def test_handling_negative_vals(negative_vals_variables):
 create test for following functions : 
 df_to_db
 """
+
+@pytest.mark.parametrize(
+    "tickers, batch_size, batches",
+    [
+        (None, None, "`tickers` attribute must of a list of strings"),
+        ([1, 2], None, "`batch_size` attribute must of an integer"),
+        ([1, 2], 10, "`tickers` attribute must of a list of strings"),
+        (["a", "b"], None, "`batch_size` attribute must of an integer"),
+    ]
+)
+def test_batch_tickers_crash(tickers, batch_size, batches):
+    with pytest.raises((TypeError, ValueError)) as e:
+        _ = batch_tickers(tickers, batch_size)
+    assert str(e.value) == batches
+
+@pytest.mark.usefixtures("ticker_batches_variables")
+def test_batch_tickers(ticker_batches_variables):
+    tickers, batch_size, expected_batch = (
+        ticker_batches_variables.get("tickers"),
+        ticker_batches_variables.get("batch_size"),
+        ticker_batches_variables.get("batches"),
+    )
+    computed_batches = batch_tickers(tickers, batch_size)
+    assert expected_batch == computed_batches
