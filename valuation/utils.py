@@ -109,8 +109,9 @@ def handling_negative_vals(iterator: List[float]) -> List[float]:
 
 
 def dict_to_df(fa_info: List[Dict[str, Any]]) -> pd.DataFrame:
+    #print(fa_info)
     if not isinstance(fa_info, list):
-        raise TypeError("`fa_info` must be a dictionary")
+        raise TypeError("`fa_info` must be a list")
     return pd.DataFrame(fa_info)
 
     
@@ -160,3 +161,22 @@ def drop_df_cols(df: pd.DataFrame, cols: List[str]) -> pd.DataFrame:
 def add_suffix_to_cols(df: pd.DataFrame, suffix: str) -> pd.DataFrame:
     df.columns = [col+suffix for col in df.columns]
     return df
+
+def batch_tickers(tickers: List[str], batch_size: int = 300) -> List[List[str]]:
+    if not isinstance(tickers, list):
+        raise TypeError("`tickers` attribute must of a list of strings")
+    if not isinstance(batch_size, int):
+        raise TypeError("`batch_size` attribute must of an integer")
+    ticker_batches = []
+    cnt = 0
+    while True:
+        start = cnt * batch_size
+        end = (cnt + 1) * batch_size
+        single_batch = tickers[start:end]
+        if not all([isinstance(tk, str) for tk in single_batch]):
+            raise ValueError("`tickers` attribute must of a list of strings")
+        ticker_batches.append(single_batch)
+        if start >= len(tickers) or end >= len(tickers):
+            break
+        cnt += 1
+    return ticker_batches

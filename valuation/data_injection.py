@@ -12,26 +12,31 @@ class Injector:
         self.host = os.environ.get("DB_HOST")
         self.port = os.environ.get("DB_PORT")
         self.db = os.environ.get("DB_NAME")
-
-    def df_to_db(self, df: pd.DataFrame, table_name: str, conn: sqlalchemy.engine) -> None:
-        df.to_sql(table_name, con=conn, if_exists="replace", index=False)
-
-    def df_dump(self, df: Dict[str, Any]) -> None:
-        db_uri = SQLALCHEMY_DB_PATH.format(
+        self.db_uri = SQLALCHEMY_DB_PATH.format(
             user=self.user,
             password=self.password,
             host=self.host,
             port=self.port,
             db=self.db,
         )
-        engine = create_engine(db_uri)
-        with engine.connect() as connection:
-            connection.execution_options(isolation_level="AUTOCOMMIT")
-            connection.execute(
-                text(FINANCIAL_STMT_DUMP_QUERY.format(table_name=FINANCIAL_STMT_TABLE_NAME))
-            )
-            self.df_to_db(
-                df=df,
-                table_name=FINANCIAL_STMT_TABLE_NAME,
-                conn=connection,
-            )
+
+    def df_to_db(self, df: pd.DataFrame, table_name: str, conn: sqlalchemy.engine) -> None:
+        df.to_sql(table_name, con=conn, if_exists="append", index=False)
+
+    def create_table(self, query: str, connection: sqlalchemy.engine) -> None:
+        #engine = create_engine(self.db_uri)
+        #with engine.connect() as connection:
+        connection.execution_options(isolation_level="AUTOCOMMIT")
+        connection.execute(
+            text(query)
+        )
+
+    def df_dump(self, df: Dict[str, Any], connection: sqlalchemy.engine) -> None:
+        #engine = create_engine(self.db_uri)
+        #with engine.connect() as connection:
+        connection.execution_options(isolation_level="AUTOCOMMIT")
+        self.df_to_db(
+            df=df,
+            table_name=FINANCIAL_STMT_TABLE_NAME,
+            conn=connection,
+        )
