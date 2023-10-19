@@ -31,12 +31,12 @@ class Injector:
             text(query)
         )
 
-    def df_dump(self, df: Dict[str, Any], connection: sqlalchemy.engine) -> None:
+    def df_dump(self, df: Dict[str, Any], engine: sqlalchemy.engine) -> None:
         #engine = create_engine(self.db_uri)
-        #with engine.connect() as connection:
-        connection.execution_options(isolation_level="AUTOCOMMIT")
-        self.df_to_db(
-            df=df,
-            table_name=FINANCIAL_STMT_TABLE_NAME,
-            conn=connection,
-        )
+        with engine.connect() as connection:
+            connection.execution_options(isolation_level="AUTOCOMMIT")
+            self.df_to_db(
+                df=df,
+                table_name=FINANCIAL_STMT_TABLE_NAME,
+                conn=connection,
+            )
