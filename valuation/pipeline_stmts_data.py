@@ -84,8 +84,8 @@ if __name__ == "__main__":
         
         # Multiprocessing
         # We execute this per batch considering the limit of the api
-        for idx, batch in enumerate(ticker_batches[:2]):
-            log.info(f"Starting batch {idx + 1} with {len(batch)} tickers...")
+        for idx, batch in enumerate(ticker_batches[:10]):
+            log.info(f"Starting batch {idx + 1}/{len(ticker_batches)} with {len(batch)} tickers...")
 
             with concurrent.futures.ProcessPoolExecutor() as executor:
                 dumping_futures = [
@@ -97,7 +97,6 @@ if __name__ == "__main__":
             log.info(f"batch {idx + 1} executed")
             log.info(f"waiting 1 min...")
             time.sleep(61)
-            log.info(f"Restarting")
 
     except exc.SQLAlchemyError as e:
         print(f"An error occurred: {e}")
