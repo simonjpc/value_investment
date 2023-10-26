@@ -13,6 +13,9 @@ from valuation.constants import (
     FINANCIAL_STMT_DUMP_QUERY,
     FINANCIAL_STMT_TABLE_NAME,
     TICKERS_PATH,
+    CREATE_INDEX_QUERY,
+    TICKER_IDX_NAME,
+    TICKER_COL_NAME,
 )
 import logging
 import time
@@ -76,15 +79,28 @@ if __name__ == "__main__":
     
     connection = engine.connect()
     log.info("engine defined and first connection created")
+
     try:
-        injector.create_table(
-            FINANCIAL_STMT_DUMP_QUERY.format(table_name=FINANCIAL_STMT_TABLE_NAME),
+        # create table
+        injector.execute_query(
+            FINANCIAL_STMT_DUMP_QUERY.format(
+                table_name=FINANCIAL_STMT_TABLE_NAME,
+            ),
             connection,
         )
-        
+        # create index
+        injector.execute_query(
+            CREATE_INDEX_QUERY.format(
+                index_name=TICKER_IDX_NAME,
+                table_name=FINANCIAL_STMT_TABLE_NAME,
+                column_name=TICKER_COL_NAME,
+            ),
+            connection,
+        )
+
         # Multiprocessing
         # We execute this per batch considering the limit of the api
-        for idx, batch in enumerate(ticker_batches[:10]):
+        for idx, batch in enumerate(ticker_batches[:4]):
             log.info(f"Starting batch {idx + 1}/{len(ticker_batches)} with {len(batch)} tickers...")
 
             with concurrent.futures.ProcessPoolExecutor() as executor:
