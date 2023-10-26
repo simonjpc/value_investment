@@ -22,14 +22,22 @@ class Injector:
 
     def df_to_db(self, df: pd.DataFrame, table_name: str, conn: sqlalchemy.engine) -> None:
         df.to_sql(table_name, con=conn, if_exists="append", index=False)
+        
+    def execute_query(self, query: str, connection: sqlalchemy.engine) -> None:
+        connection.execute(text(query))
+        connection.commit()
 
+    # DEPRICATED
+    def define_index(self, query: str, connection: sqlalchemy.engine) -> None:
+        connection.execution_options(isolation_level="AUTOCOMMIT")
+        connection.execute(text(query))
+
+    # DEPRICATED
     def create_table(self, query: str, connection: sqlalchemy.engine) -> None:
         #engine = create_engine(self.db_uri)
         #with engine.connect() as connection:
         connection.execution_options(isolation_level="AUTOCOMMIT")
-        connection.execute(
-            text(query)
-        )
+        connection.execute(text(query))
 
     def df_dump(self, df: Dict[str, Any], engine: sqlalchemy.engine) -> None:
         #engine = create_engine(self.db_uri)
