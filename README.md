@@ -19,6 +19,21 @@ These is the list of tasks to do that do not depend on any other task:
   - create table that will store all the info. DONE
   - define the column names and types. DONE
   - dump the data of a single company into de db. DONE
-  - look for how to parallelize the dump to avoid for loops with companies.
+  - look for how to parallelize the dump to avoid for loops with companies. DONE
   - Do the same for all the companies.
 - Define how to automatically choose companies below fair value (both approaches).
+
+
+#### Regarding the price extraction for backtesting
+
+How it happends today:
+- I get the mrq balance sheet info and with it I compute the intrinsic value of a company
+- I get the price of today
+- I check whether the intrinsic value computed with the mrq balance sheet is greater that today's price
+
+How it should happen in the past:
+- I select a given balance sheet, that will be my mrq balance sheet
+- I get the prices for every X period of time after the filling date of the selected balance sheet and before the filling date of the next balance sheet
+- I check whether for any of the extracted prices I am below intrinsic value
+
+Thus, I will create a table that will store the price history per week between the date of the oldest financial stmt from the financial_stmts table and the date of the mrq financial info + 2 years.

@@ -183,6 +183,23 @@ FINANCIAL_STMT_DUMP_QUERY = """
         "weightedAverageShsOutDil_is" bigint
     )
 """
+
+PRICES_HISTORY_DUMP_QUERY = """
+    CREATE TABLE IF NOT EXISTS {table_name} (
+        date date,
+        symbol_bs varchar,
+        "reportedCurrency_bs" varchar,
+        "fillingDate_bs" timestamp,
+        "acceptedDate_bs" timestamp,
+        price_low numeric,
+        price_high numeric,
+        price_open numeric,
+        price_close numeric,
+        price_avg numeric,
+        volume_avg numeric,
+    )
+"""
+
 FINANCIAL_STMT_TABLE_NAME = "financial_stmts"
 SQLALCHEMY_DB_PATH = "postgresql://{user}:{password}@{host}:{port}/{db}"
 INCOME_STMT_COLS_TO_DROP = [
