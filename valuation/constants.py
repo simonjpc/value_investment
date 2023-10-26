@@ -184,13 +184,21 @@ FINANCIAL_STMT_DUMP_QUERY = """
     )
 """
 
-PRICES_HISTORY_DUMP_QUERY = """
+
+CREATE_INDEX_QUERY = """
+    CREATE INDEX {index_name} ON {table_name} ({column_name})
+"""
+
+DAILY_PRICES_HISTORY_DUMP_QUERY = """
     CREATE TABLE IF NOT EXISTS {table_name} (
         date date,
+        date_weekday integer,
         symbol_bs varchar,
         "reportedCurrency_bs" varchar,
         "fillingDate_bs" timestamp,
+        "fillingDate_weekday" integer,
         "acceptedDate_bs" timestamp,
+        "acceptedDate_weekday" integer,
         price_low numeric,
         price_high numeric,
         price_open numeric,
@@ -200,6 +208,15 @@ PRICES_HISTORY_DUMP_QUERY = """
     )
 """
 
+OLDEST_FILLING_DATE_PER_SYMBOL_QUERY = """
+    SELECT symbol_bs, "fillingDate_bs"
+    FROM financial_stmts stmts1
+    WHERE "fillingDate_bs" = (
+        SELECT MIN("fillingDate_bs")
+        FROM financial_stmts stmts2
+        WHERE stmts1.symbol_bs = stmts2.symbol_bs
+    )
+"""
 FINANCIAL_STMT_TABLE_NAME = "financial_stmts"
 SQLALCHEMY_DB_PATH = "postgresql://{user}:{password}@{host}:{port}/{db}"
 INCOME_STMT_COLS_TO_DROP = [
@@ -213,6 +230,8 @@ INCOME_STMT_COLS_TO_DROP = [
     "finalLink",
     "link",
 ]
+TICKER_IDX_NAME = "symbol_index"
+TICKER_COL_NAME = "symbol_bs"
 
 # Paths constants
 TICKERS_PATH = "./tickers_list_03092023.txt"
