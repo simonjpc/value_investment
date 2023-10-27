@@ -11,7 +11,7 @@ from valuation.utils import compute_avg_value, dict_to_df
 
 # get oldest record per symbol.
 # This should go somewhere else where reads from queries are made
-def get_all_symbols_oldest_date(
+def all_symbols_oldest_and_newest_dates(
     query: str, connection: sqlalchemy.engine,
 ) -> pd.DataFrame:
     df = pd.read_sql(query, con=connection)
