@@ -209,13 +209,14 @@ DAILY_PRICES_HISTORY_DUMP_QUERY = """
 """
 
 OLDEST_FILLING_DATE_PER_SYMBOL_QUERY = """
-    SELECT symbol_bs, "fillingDate_bs"
-    FROM financial_stmts stmts1
-    WHERE "fillingDate_bs" = (
-        SELECT MIN("fillingDate_bs")
-        FROM financial_stmts stmts2
-        WHERE stmts1.symbol_bs = stmts2.symbol_bs
-    )
+    SELECT 
+        symbol_bs,
+        MIN("fillingDate_bs") AS fillingdate_oldest,
+        MAX("fillingDate_bs") AS fillingdate_newest
+    FROM
+        financial_stmts
+    GROUP BY
+        symbol_bs;
 """
 FINANCIAL_STMT_TABLE_NAME = "financial_stmts"
 SQLALCHEMY_DB_PATH = "postgresql://{user}:{password}@{host}:{port}/{db}"
