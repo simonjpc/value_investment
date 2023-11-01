@@ -1,8 +1,15 @@
 import numpy as np
 import pandas as pd
-from typing import List, Dict, Any, Tuple
+from typing import List, Dict, Any, Tuple, Union
 import matplotlib.pyplot as plt
-from valuation.constants import COLS_TO_PLOT_EPSX, COLS_TO_PLOT_NCAV, COLS_WITH_SAME_SCALE, SUBPLOT_NAMES
+from datetime import datetime
+from valuation.constants import (
+    COLS_TO_PLOT_EPSX,
+    COLS_TO_PLOT_NCAV,
+    COLS_WITH_SAME_SCALE,
+    SUBPLOT_NAMES,
+    DATE_FORMAT,
+)
 
 def get_key_from_iterator(
     iterator: List[Dict[str, Any]], key: str,
@@ -114,7 +121,42 @@ def dict_to_df(fa_info: List[Dict[str, Any]]) -> pd.DataFrame:
         raise TypeError("`fa_info` must be a list")
     return pd.DataFrame(fa_info)
 
+
+def list_to_single_col_df(fa_info:List[str], col_name:str) -> pd.DataFrame:
+    if not isinstance(col_name, str):
+        raise TypeError("`col_name` attribute must be a string")
+    if not isinstance(fa_info, list):
+        raise TypeError("`fa_info` attribute must be a list")
+    df = pd.DataFrame(fa_info, columns=[col_name])
+    return df
+
+def df_to_list(df: pd.DataFrame) -> List[Tuple[Any]]:
+    if not isinstance(df, pd.DataFrame):
+        raise TypeError("`df` attribute must be a dataframe")
+    return df.values.tolist()
+
+def weekday_from_date(date: Union[str, pd.Timestamp]) -> str:
+    """
+    0 = Monday
+    6 = Sunday
+    """
+    #if not isinstance(date, (str, pd.Timestamp)):
+    #    raise TypeError("`date` attribute must be a string of a timestamp")
+    if isinstance(date, str):
+        date = datetime.strptime(date, DATE_FORMAT)
+    return date.weekday()
     
+def compute_offset_date(
+    date: Union[str, pd.Timestamp], offset: int = 730,
+) -> pd.Timestamp:
+    if not isinstance(date, (str, pd.Timestamp)):
+        raise TypeError("`date` attribute must be a string of a timestamp")
+    if isinstance(date, str):
+        date = pd.to_datetime(date)
+    offset_date = (date + pd.DateOffset(days=offset)).date()
+    return offset_date
+
+
 def plot_indicators_epsx(df: pd.DataFrame) -> None:
     num_cols = df.shape[1]
     num_plots = min(num_cols, 13)  # Limit to 13 subplots or the number of columns
@@ -162,7 +204,7 @@ def add_suffix_to_cols(df: pd.DataFrame, suffix: str) -> pd.DataFrame:
     df.columns = [col+suffix for col in df.columns]
     return df
 
-def batch_tickers(tickers: List[str], batch_size: int = 300) -> List[List[str]]:
+def batch_tickers(tickers: List[Any], batch_size: int = 300) -> List[List[str]]:
     if not isinstance(tickers, list):
         raise TypeError("`tickers` attribute must of a list of strings")
     if not isinstance(batch_size, int):
@@ -173,8 +215,8 @@ def batch_tickers(tickers: List[str], batch_size: int = 300) -> List[List[str]]:
         start = cnt * batch_size
         end = (cnt + 1) * batch_size
         single_batch = tickers[start:end]
-        if not all([isinstance(tk, str) for tk in single_batch]):
-            raise ValueError("`tickers` attribute must of a list of strings")
+        #if not all([isinstance(tk, str) for tk in single_batch]):
+        #    raise ValueError("`tickers` attribute must of a list of strings")
         ticker_batches.append(single_batch)
         if start >= len(tickers) or end >= len(tickers):
             break

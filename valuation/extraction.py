@@ -7,6 +7,22 @@ import pandas as pd
 
 KEY = os.environ.get("VALUATION_KEY")
 
+def get_all_tickers_list():
+    url_all_tickers = f"{API_BASE_PATH}/financial-statement-symbol-lists"
+    params = {
+        "apikey": KEY,
+    }
+    try:
+        response = requests.get(url_all_tickers, params=params)
+        response.raise_for_status()
+        all_tickers = response.json()
+        return all_tickers
+    except requests.exceptions.RequestException as e:
+        print(f"Request error: {e}")
+    except json.JSONDecodeError as e:
+        print(f"JSON decoding error: {e}")
+    return []
+    
 def get_income_stmt_info(ticker: str, period: str, limit: int = 10) -> List[Dict[str, Any]]:
     if not isinstance(ticker, str):
         raise AttributeError("`ticker` attribute must be a string")
@@ -59,9 +75,11 @@ def get_balance_sheet_info(ticker: str, period: str, limit: int = 10) -> List[Di
 
     return [] # Return an empty list if we fall in an exception
 
-def get_prices_in_range(ticker: str, window_start: str, window_end: str) -> Dict[str, Any]:
+def get_prices_in_range(ticker: str, window_start: str, window_end: str) -> Dict[str, Any]:    
     if not all([isinstance(var, str) for var in (ticker, window_start, window_end)]):
-        raise AttributeError("all input attributes must be of type string")
+        raise AttributeError(
+            "all input attributes must be of type string"
+        )
 
     for element in (window_start, window_end):
         try:
