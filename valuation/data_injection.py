@@ -20,8 +20,14 @@ class Injector:
             db=self.db,
         )
 
-    def df_to_db(self, df: pd.DataFrame, table_name: str, conn: sqlalchemy.engine) -> None:
-        df.to_sql(table_name, con=conn, if_exists="append", index=False)
+    def df_to_db(
+        self,
+        df: pd.DataFrame,
+        table_name: str,
+        conn: sqlalchemy.engine,
+        idx_flag: bool = False,
+    ) -> None:
+        df.to_sql(table_name, con=conn, if_exists="append", index=idx_flag)
         
     def execute_query(self, query: str, connection: sqlalchemy.engine) -> None:
         connection.execute(text(query))

@@ -74,7 +74,18 @@ COLS_WITH_SAME_SCALE = [
     ["totalAssets", "totalLiabilities"],
     ["de_ratio1", "de_ratio2", "de_ratio3"],
 ]
-
+PRICES_INFO_COLUMNS = [
+    "date",
+    "weekday",
+    "symbol",
+    "low",
+    "high",
+    "open",
+    "close",
+    "volume",
+]
+HIST_PRICES_DATE_COL = PRICES_INFO_COLUMNS[0]
+WEEKDAY_COL = "weekday"
 SUBPLOT_NAMES = {
     "ncavps": "ncavps",
     "liqvps": "liqvps",
@@ -107,108 +118,113 @@ FINANCIAL_STMT_DUMP_QUERY = """
         "acceptedDate_bs" timestamp,
         "calendarYear_bs" integer,
         period_bs character(2),
-        "cashAndCashEquivalents_bs" bigint,
-        "shortTermInvestments_bs" bigint,
-        "cashAndShortTermInvestments_bs" bigint,
-        "netReceivables_bs" bigint,
-        inventory_bs bigint,
-        "otherCurrentAssets_bs" bigint,
-        "totalCurrentAssets_bs" bigint,
-        "propertyPlantEquipmentNet_bs" bigint,
-        goodwill_bs bigint,
-        "intangibleAssets_bs" bigint,
-        "goodwillAndIntangibleAssets_bs" bigint,
-        "longTermInvestments_bs" bigint,
-        "taxAssets_bs" bigint,
-        "otherNonCurrentAssets_bs" bigint,
-        "totalNonCurrentAssets_bs" bigint,
-        "otherAssets_bs" bigint,
-        "totalAssets_bs" bigint,
-        "accountPayables_bs" bigint,
-        "shortTermDebt_bs" bigint,
-        "taxPayables_bs" bigint,
-        "deferredRevenue_bs" bigint,
-        "otherCurrentLiabilities_bs" bigint,
-        "totalCurrentLiabilities_bs" bigint,
-        "longTermDebt_bs" bigint,
-        "deferredRevenueNonCurrent_bs" bigint,
-        "deferredTaxLiabilitiesNonCurrent_bs" bigint,
-        "otherNonCurrentLiabilities_bs" bigint,
-        "totalNonCurrentLiabilities_bs" bigint,
-        "otherLiabilities_bs" bigint,
-        "capitalLeaseObligations_bs" bigint,
-        "totalLiabilities_bs" bigint,
-        "preferredStock_bs" bigint,
-        "commonStock_bs" bigint,
-        "retainedEarnings_bs" bigint,
-        "accumulatedOtherComprehensiveIncomeLoss_bs" bigint,
-        "othertotalStockholdersEquity_bs" bigint,
-        "totalStockholdersEquity_bs" bigint,
-        "totalEquity_bs" bigint,
-        "totalLiabilitiesAndStockholdersEquity_bs" bigint,
-        "minorityInterest_bs" bigint,
-        "totalLiabilitiesAndTotalEquity_bs" bigint,
-        "totalInvestments_bs" bigint,
-        "totalDebt_bs" bigint,
-        "netDebt_bs" bigint,
+        "cashAndCashEquivalents_bs" numeric, -- previous bigint til dump crash
+        "shortTermInvestments_bs" numeric, -- previous bigint til dump crash
+        "cashAndShortTermInvestments_bs" numeric, -- previous bigint til dump crash
+        "netReceivables_bs" numeric, -- previous bigint til dump crash
+        inventory_bs numeric, -- previous bigint til dump crash
+        "otherCurrentAssets_bs" numeric, -- previous bigint til dump crash
+        "totalCurrentAssets_bs" numeric, -- previous bigint til dump crash
+        "propertyPlantEquipmentNet_bs" numeric, -- previous bigint til dump crash
+        goodwill_bs numeric, -- previous bigint til dump crash
+        "intangibleAssets_bs" numeric, -- previous bigint til dump crash
+        "goodwillAndIntangibleAssets_bs" numeric, -- previous bigint til dump crash
+        "longTermInvestments_bs" numeric, -- previous bigint til dump crash
+        "taxAssets_bs" numeric, -- previous bigint til dump crash
+        "otherNonCurrentAssets_bs" numeric, -- previous bigint til dump crash
+        "totalNonCurrentAssets_bs" numeric, -- previous bigint til dump crash
+        "otherAssets_bs" numeric, -- previous bigint til dump crash
+        "totalAssets_bs" numeric, -- previous bigint til dump crash
+        "accountPayables_bs" numeric, -- previous bigint til dump crash
+        "shortTermDebt_bs" numeric, -- previous bigint til dump crash
+        "taxPayables_bs" numeric, -- previous bigint til dump crash
+        "deferredRevenue_bs" numeric, -- previous bigint til dump crash
+        "otherCurrentLiabilities_bs" numeric, -- previous bigint til dump crash
+        "totalCurrentLiabilities_bs" numeric, -- previous bigint til dump crash
+        "longTermDebt_bs" numeric, -- previous bigint til dump crash
+        "deferredRevenueNonCurrent_bs" numeric, -- previous bigint til dump crash
+        "deferredTaxLiabilitiesNonCurrent_bs" numeric, -- previous bigint til dump crash
+        "otherNonCurrentLiabilities_bs" numeric, -- previous bigint til dump crash
+        "totalNonCurrentLiabilities_bs" numeric, -- previous bigint til dump crash
+        "otherLiabilities_bs" numeric, -- previous bigint til dump crash
+        "capitalLeaseObligations_bs" numeric, -- previous bigint til dump crash
+        "totalLiabilities_bs" numeric, -- previous bigint til dump crash
+        "preferredStock_bs" numeric, -- previous bigint til dump crash
+        "commonStock_bs" numeric, -- previous bigint til dump crash
+        "retainedEarnings_bs" numeric, -- previous bigint til dump crash
+        "accumulatedOtherComprehensiveIncomeLoss_bs" numeric, -- previous bigint til dump crash
+        "othertotalStockholdersEquity_bs" numeric, -- previous bigint til dump crash
+        "totalStockholdersEquity_bs" numeric, -- previous bigint til dump crash
+        "totalEquity_bs" numeric, -- previous bigint til dump crash
+        "totalLiabilitiesAndStockholdersEquity_bs" numeric, -- previous bigint til dump crash
+        "minorityInterest_bs" numeric, -- previous bigint til dump crash
+        "totalLiabilitiesAndTotalEquity_bs" numeric, -- previous bigint til dump crash
+        "totalInvestments_bs" numeric, -- previous bigint til dump crash
+        "totalDebt_bs" numeric, -- previous bigint til dump crash
+        "netDebt_bs" numeric, -- previous bigint til dump crash
         link_bs varchar,
         "finalLink_bs" varchar,
-        revenue_is bigint,
-        "costOfRevenue_is" bigint,
-        "grossProfit_is" bigint,
+        revenue_is numeric, -- previous bigint til dump crash
+        "costOfRevenue_is" numeric, -- previous bigint til dump crash
+        "grossProfit_is" numeric, -- previous bigint til dump crash
         "grossProfitRatio_is" integer,
-        "researchAndDevelopmentExpenses_is" bigint,
-        "generalAndAdministrativeExpenses_is" bigint,
-        "sellingAndMarketingExpenses_is" bigint,
-        "sellingGeneralAndAdministrativeExpenses_is" bigint,
-        "otherExpenses_is" bigint,
-        "operatingExpenses_is" bigint,
-        "costAndExpenses_is" bigint,
-        "interestIncome_is" bigint,
-        "interestExpense_is" bigint,
-        "depreciationAndAmortization_is" bigint,
-        ebitda_is bigint,
-        ebitdaratio_is integer,
-        "operatingIncome_is" bigint,
-        "operatingIncomeRatio_is" integer,
-        "totalOtherIncomeExpensesNet_is" bigint,
-        "incomeBeforeTax_is" bigint,
-        "incomeBeforeTaxRatio_is" integer,
-        "incomeTaxExpense_is" bigint,
-        "netIncome_is" bigint,
-        "netIncomeRatio_is" integer,
+        "researchAndDevelopmentExpenses_is" numeric, -- previous bigint til dump crash
+        "generalAndAdministrativeExpenses_is" numeric, -- previous bigint til dump crash
+        "sellingAndMarketingExpenses_is" numeric, -- previous bigint til dump crash
+        "sellingGeneralAndAdministrativeExpenses_is" numeric, -- previous bigint til dump crash
+        "otherExpenses_is" numeric, -- previous bigint til dump crash
+        "operatingExpenses_is" numeric, -- previous bigint til dump crash
+        "costAndExpenses_is" numeric, -- previous bigint til dump crash
+        "interestIncome_is" numeric, -- previous bigint til dump crash
+        "interestExpense_is" numeric, -- previous bigint til dump crash
+        "depreciationAndAmortization_is" numeric, -- previous bigint til dump crash
+        ebitda_is numeric, -- previous bigint til dump crash
+        ebitdaratio_is numeric,
+        "operatingIncome_is" numeric, -- previous bigint til dump crash
+        "operatingIncomeRatio_is" numeric,
+        "totalOtherIncomeExpensesNet_is" numeric, -- previous bigint til dump crash
+        "incomeBeforeTax_is" numeric, -- previous bigint til dump crash
+        "incomeBeforeTaxRatio_is" numeric,
+        "incomeTaxExpense_is" numeric, -- previous bigint til dump crash
+        "netIncome_is" numeric, -- previous bigint til dump crash
+        "netIncomeRatio_is" numeric,
         eps_is integer,
         epsdiluted_is integer,
-        "weightedAverageShsOut_is" bigint,
-        "weightedAverageShsOutDil_is" bigint
+        "weightedAverageShsOut_is" numeric, -- previous bigint til dump crash
+        "weightedAverageShsOutDil_is" numeric -- previous bigint til dump crash
     )
 """
 
 
 CREATE_INDEX_QUERY = """
-    CREATE INDEX {index_name} ON {table_name} ({column_name})
+    CREATE INDEX IF NOT EXISTS {index_name} ON {table_name} ({column_name})
 """
 
 DAILY_PRICES_HISTORY_DUMP_QUERY = """
     CREATE TABLE IF NOT EXISTS {table_name} (
         date date,
-        date_weekday integer,
-        symbol_bs varchar,
-        "reportedCurrency_bs" varchar,
-        "fillingDate_bs" timestamp,
-        "fillingDate_weekday" integer,
-        "acceptedDate_bs" timestamp,
-        "acceptedDate_weekday" integer,
-        price_low numeric,
-        price_high numeric,
-        price_open numeric,
-        price_close numeric,
-        price_avg numeric,
-        volume_avg numeric,
+        weekday integer,
+        symbol varchar,
+        low numeric,
+        high numeric,
+        open numeric,
+        close numeric,
+        volume numeric
     )
 """
 
-OLDEST_FILLING_DATE_PER_SYMBOL_QUERY = """
+ALL_TICKERS_DUMP_QUERY = """
+CREATE TABLE IF NOT EXISTS {table_name} (
+    id SERIAL PRIMARY KEY,
+    ticker varchar
+)
+"""
+
+INSERT_ELEMENT_IN_COL_QUERY = """
+INSERT INTO {table_name} ({col_name}) VALUES ('{element}')
+"""
+
+OLDEST_AND_NEWEST_FILLING_DATES_PER_SYMBOL_QUERY = """
     SELECT 
         symbol_bs,
         MIN("fillingDate_bs") AS fillingdate_oldest,
@@ -219,6 +235,8 @@ OLDEST_FILLING_DATE_PER_SYMBOL_QUERY = """
         symbol_bs;
 """
 FINANCIAL_STMT_TABLE_NAME = "financial_stmts"
+PRICES_HISTORY_TABLE_NAME = "prices_history"
+ALL_TICKERS_TABLE_NAME = "company_tickers"
 SQLALCHEMY_DB_PATH = "postgresql://{user}:{password}@{host}:{port}/{db}"
 INCOME_STMT_COLS_TO_DROP = [
     "symbol",
@@ -235,4 +253,8 @@ TICKER_IDX_NAME = "symbol_index"
 TICKER_COL_NAME = "symbol_bs"
 
 # Paths constants
-TICKERS_PATH = "./tickers_list_03092023.txt"
+TICKERS_PATH_RECENT = "./tickers_list_03092023.txt"
+TICKERS_PATH_ANCIENT = "./tickers_list_28062023.txt"
+
+# Formats
+DATE_FORMAT = "%Y-%m-%d"
