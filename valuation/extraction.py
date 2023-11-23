@@ -25,35 +25,7 @@ def get_all_tickers_list(delisted: bool = False):
         print(f"JSON decoding error: {e}")
     return []
     
-# TO TEST
-def get_all_delisted_companies():
-    all_delisted_companies = []
-    url_delisted = f"{API_BASE_PATH}/delisted-companies"
-    page_number = 0
-    while True:
-        # algorithm
-        params = {
-            "page": page_number,
-            "apikey": KEY,
-        }
-        try:
-            response = requests.get(url_delisted, params=params)
-            response.raise_for_status()
-            single_page_tickers = response.json()
-        except requests.exceptions.RequestException as e:
-            print(f"Request error: {e}")
-            single_page_tickers = []
-        except json.JSONDecodeError as e:
-            print(f"JSON decoding error: {e}")
-            single_page_tickers = []
-        all_delisted_companies.extend(single_page_tickers)
-        if len(single_page_tickers) != 100:
-            break
-        # used for the  basic version of the API subscription
-        if page_number == 90:
-            time.sleep(61)
-        page_number += 1
-    return all_delisted_companies
+
 
 def get_income_stmt_info(ticker: str, period: str, limit: int = 10) -> List[Dict[str, Any]]:
     if not isinstance(ticker, str):
