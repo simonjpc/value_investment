@@ -9,6 +9,8 @@ from valuation.constants import (
     COLS_WITH_SAME_SCALE,
     SUBPLOT_NAMES,
     DATE_FORMAT,
+    FUNDS_STOPWORDS,
+    DELISTED_COMPANY_NAME_KEY,
 )
 
 def get_key_from_iterator(
@@ -222,3 +224,16 @@ def batch_tickers(tickers: List[Any], batch_size: int = 300) -> List[List[str]]:
             break
         cnt += 1
     return ticker_batches
+
+# TO TEST
+def filter_out_funds(delisted_objects: Dict[str, Any]) -> Dict[str, Any]:
+    filtered_objects = [
+        delisted
+        for delisted in delisted_objects if not any(
+            [
+                stopword in delisted[DELISTED_COMPANY_NAME_KEY].lower()
+                for stopword in FUNDS_STOPWORDS
+            ]
+        )
+    ]
+    return filtered_objects

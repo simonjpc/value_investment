@@ -258,3 +258,7 @@ TICKERS_PATH_ANCIENT = "./tickers_list_28062023.txt"
 
 # Formats
 DATE_FORMAT = "%Y-%m-%d"
+
+# Delisted objects
+FUNDS_STOPWORDS = ["fund", "etf", "proshares"]
+DELISTED_COMPANY_NAME_KEY = "companyName"
