@@ -30,7 +30,7 @@ filtered_tickers = [
     )
 ]
 
-for ticker in filtered_tickers:
+for test_symbol in filtered_tickers:
     query = f"""
     WITH min_filling_date AS (
         SELECT MIN("fillingDate_bs") as filling_date_oldest
