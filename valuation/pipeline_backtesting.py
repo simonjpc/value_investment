@@ -30,5 +30,20 @@ filtered_tickers = [
     )
 ]
 
+for ticker in filtered_tickers:
+    query = f"""
+    WITH min_filling_date AS (
+        SELECT MIN("fillingDate_bs") as filling_date_oldest
+        FROM financial_stmts
+        WHERE symbol_bs = '{test_symbol}'
+    )
+    SELECT "fillingDate_bs", period_bs
+    FROM financial_stmts
+    WHERE "fillingDate_bs" = (SELECT filling_date_oldest FROM min_filling_date)
+        AND symbol_bs = '{test_symbol}';
+    """
 
+    with engine.connec() as connection:
+        df = pd.read_sql(query, connection)
 
+    
