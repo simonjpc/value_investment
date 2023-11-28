@@ -44,7 +44,9 @@ for test_symbol in filtered_tickers:
     )
     SELECT "fillingDate_bs", period_bs
     FROM financial_stmts
-    WHERE "fillingDate_bs" = (SELECT filling_date_oldest FROM min_filling_date)
+    WHERE "fillingDate_bs" = (
+        SELECT filling_date_oldest FROM min_filling_date
+        )
         AND symbol_bs = '{test_symbol}';
     """
 
@@ -62,7 +64,10 @@ for test_symbol in filtered_tickers:
     query = f"""
     select *
     from financial_stmts
-    where symbol_bs = '{test_symbol}' and period_bs = '{oldest_period}' and "fillingDate_bs" >= '{oldest_date}' and "fillingDate_bs" <= '{offset_date}'
+    where symbol_bs = '{test_symbol}' and
+          period_bs = '{oldest_period}' and
+          "fillingDate_bs" >= '{oldest_date}' and
+          "fillingDate_bs" <= '{offset_date}'
     """
 
     with engine.connect() as connection:
