@@ -72,3 +72,70 @@ for test_symbol in filtered_tickers:
 
     with engine.connect() as connection:
         same_period_hist_df = pd.read_sql(query, connection)
+
+    # Compute valuation with info from fillingDate_bs of oldest + 10 years
+    # (most recent row of `same_period_hist_df`)
+
+    cols = list(same_period_hist_df.columns)
+    cols = [col.split("_")[0] for col in cols]
+    same_period_hist_df.columns = cols
+
+    offset_date_financials = same_period_hist_df[
+        same_period_hist_df["fillingDate"] == max(same_period_hist_df["fillingDate"])
+    ]
+    ncavps = compute_ncavps(offset_date_financials.to_dict("records")[0])
+    liqvps = compute_liqvps(
+        offset_date_financials.to_dict("records")[0],
+        factors=CURRENT_ASSETS_FACTORS
+    )
+
+    # Get prices from the least oldest stmt til the day before the following stmt
+    least_oldest_date = offset_date_financials.loc[0, "date"]
+
+    query = f"""
+    SELECT date, "fillingDate_bs", period_bs
+    FROM financial_stmts
+    WHERE date > '{least_oldest_date}' and symbol_bs = '{test_symbol}'
+    ORDER BY date
+    LIMIT 1;
+    """
+    with engine.connect() as connection:
+        df = pd.read_sql(query, connection)
+
+    next_filling_date = df.loc[0, "fillingDate_bs"].date()
+    plateau_date = (next_filling_date - pd.DateOffset(days=1)).date()
+    next_filling_date, plateau_date
+
+    query = f"""
+    select *
+    from prices_history
+    where symbol = '{test_symbol}' and date >= '{least_oldest_date}' and date <= '{plateau_date}'
+    """
+    with engine.connect() as connection:
+        prices_df = pd.read_sql(query, connection)
+
+    fct = 1 # should be more like 0.5 when implemented in the script
+    prices_df[prices_df["low"] < ncavps * fct]
+
+    # Compute slope in percentage values of shares outstanding during the last 10 years (same quarter)
+    same_period_hist_df = same_period_hist_df[::-1]
+    x = range(len(same_period_hist_df[~pd.isna(same_period_hist_df["weightedAverageShsOutDil"])]))
+    slope, y_intercept = np.polyfit(
+        x,
+        same_period_hist_df.loc[~pd.isna(same_period_hist_df["weightedAverageShsOutDil"]), "weightedAverageShsOutDil"],
+        1,
+    )
+    x_5y = range(5)
+    slope_5y, y_intercept_5y = np.polyfit(
+        x_5y,
+        same_period_hist_df.tail(5).loc[~pd.isna(same_period_hist_df.tail(5)["weightedAverageShsOutDil"]), "weightedAverageShsOutDil"],
+        1,
+    )
+
+    start, end = (slope * x + y_intercept)[0], (slope * x + y_intercept)[-1]
+    start_5y, end_5y = (slope_5y * x_5y + y_intercept_5y)[0], (slope_5y * x_5y + y_intercept_5y)[-1]
+
+    slope_percentage = (end - start) / start
+    slope_percentage_5y = (end_5y - start_5y) / start_5y
+
+    
