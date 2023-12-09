@@ -1,15 +1,17 @@
+import json
 import os
 import time
-from valuation.constants import API_BASE_PATH
-from typing import List, Dict, Any, Tuple
-import json
-import requests
+from typing import Any, Dict, List, Tuple
+
 import pandas as pd
+import requests
+
+from valuation.constants import API_BASE_PATH
 
 KEY = os.environ.get("VALUATION_KEY")
 
 
-def get_all_tickers_list(delisted: bool = False):
+def get_all_tickers_list():
     url_all_tickers = f"{API_BASE_PATH}/financial-statement-symbol-lists"
     params = {
         "apikey": KEY,
@@ -26,7 +28,7 @@ def get_all_tickers_list(delisted: bool = False):
     return []
     
 # TO TEST
-def get_all_delisted_companies():
+def get_all_delisted_tickers_list():
     all_delisted_companies = []
     url_delisted = f"{API_BASE_PATH}/delisted-companies"
     page_number = 0
@@ -53,7 +55,9 @@ def get_all_delisted_companies():
         if page_number == 90:
             time.sleep(61)
         page_number += 1
-    return all_delisted_companies
+    # get only value of `symbol` key
+    all_delisted_tickers = [element["symbol"] for element in all_delisted_companies]
+    return all_delisted_tickers
 
 def get_income_stmt_info(ticker: str, period: str, limit: int = 10) -> List[Dict[str, Any]]:
     if not isinstance(ticker, str):

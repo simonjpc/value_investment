@@ -237,6 +237,7 @@ OLDEST_AND_NEWEST_FILLING_DATES_PER_SYMBOL_QUERY = """
 FINANCIAL_STMT_TABLE_NAME = "financial_stmts"
 PRICES_HISTORY_TABLE_NAME = "prices_history"
 ALL_TICKERS_TABLE_NAME = "company_tickers"
+ALL_DELISTED_TICKERS_TABLE_NAME = "delisted_company_tickers"
 SQLALCHEMY_DB_PATH = "postgresql://{user}:{password}@{host}:{port}/{db}"
 INCOME_STMT_COLS_TO_DROP = [
     "symbol",
