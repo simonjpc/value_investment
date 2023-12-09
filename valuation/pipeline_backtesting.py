@@ -20,7 +20,7 @@ from company_tickers
 with engine.connect() as connection:
     tickers_df = pd.read_sql(query, connection)
 
-tickers_list = len(tickers_df["ticker"].tolist())
+tickers_list = tickers_df["ticker"].tolist()
 
 filtered_tickers = [
     ticker for ticker in tickers_list if (
@@ -32,9 +32,52 @@ filtered_tickers = [
     )
 ]
 
-# iterate on all symbols
-for test_symbol in filtered_tickers:
+# Table with all info
+output_df = pd.DataFrame(
+    columns=[
+        "ticker",
+        "ref_report_date",
+        "report_date",
+        "ref_report_date_quarter",
+        "report_date_quarter",
+        "outs_shares1",
+        "outs_shares2",
+        "outs_shares3",
+        "outs_shares4",
+        "outs_shares5",
+        "outs_shares6",
+        "outs_shares7",
+        "outs_shares8",
+        "outs_shares9",
+        "outs_shares10",
+        "outs_shares_slope_pct_10y",
+        "outs_shares_slope_pct_5y",
+        "min_price_date",
+        "min_price",
+        "max_price_date",
+        "max_price",
+        "ncavps",
+        "liqvps",
+        "ncav_mos",
+        "liqv_mos",
+        "highest_return_delay",
+        "doubling_price",
+        "doubling_date",
+        "doubling_return_delay",
+        "highest_return",
+        "min_price_modif",
+        "max_price_modif",
+        "ncav_mos_modif",
+        "liqv_mos_modif",
+        "doubling_price_modif",
+        "highest_return_modif",
+    ]
+)
 
+MODIF_CONSTANT = 0.20 # 20% arbitrary return reduction
+
+# iterate on all symbols
+for idx, test_symbol in enumerate(filtered_tickers):
     # get oldest stmt
     query = f"""
     WITH min_filling_date AS (
@@ -50,11 +93,12 @@ for test_symbol in filtered_tickers:
         AND symbol_bs = '{test_symbol}';
     """
 
-    with engine.connec() as connection:
+    with engine.connect() as connection:
         df = pd.read_sql(query, connection)
 
     # get stmts from oldest until oldest + 10 years from the same quarter
-
+    if len(df) == 0:
+        continue
     oldest_date, oldest_period = df.loc[0, "fillingDate_bs"], df.loc[0, "period_bs"]
     offset = 10*365 # 10 years
     offset_date = (oldest_date + pd.DateOffset(days=offset)).date()
@@ -75,7 +119,6 @@ for test_symbol in filtered_tickers:
 
     # Compute valuation with info from fillingDate_bs of oldest + 10 years
     # (most recent row of `same_period_hist_df`)
-
     cols = list(same_period_hist_df.columns)
     cols = [col.split("_")[0] for col in cols]
     same_period_hist_df.columns = cols
@@ -90,6 +133,7 @@ for test_symbol in filtered_tickers:
     )
 
     # Get prices from the least oldest stmt til the day before the following stmt
+    offset_date_financials = offset_date_financials.reset_index(drop=True)
     least_oldest_date = offset_date_financials.loc[0, "date"]
 
     query = f"""
@@ -101,6 +145,9 @@ for test_symbol in filtered_tickers:
     """
     with engine.connect() as connection:
         df = pd.read_sql(query, connection)
+
+    if len(df) == 0:
+        continue
 
     next_filling_date = df.loc[0, "fillingDate_bs"].date()
     plateau_date = (next_filling_date - pd.DateOffset(days=1)).date()
@@ -187,4 +234,46 @@ for test_symbol in filtered_tickers:
     doubled_return_months = round(doubled_return_days / 30, 2)
     doubled_return_years = round(doubled_return_days / 365, 2)
 
-    
+    output_df.loc[idx, "ticker"] = test_symbol
+    output_df.loc[idx, "ref_report_date"] = df.loc[0, "fillingDate_bs"]
+    output_df.loc[idx, "report_date"] = offset_date_financials.loc[0, "fillingDate"]
+    output_df.loc[idx, "ref_report_date_quarter"] = df.loc[0, "period_bs"]
+    output_df.loc[idx, "report_date_quarter"] = offset_date_financials.loc[0, "period"]
+    output_df.loc[idx, "outs_shares1"] = same_period_hist_df.reset_index().loc[0, "weightedAverageShsOutDil"]
+    output_df.loc[idx, "outs_shares2"] = same_period_hist_df.reset_index().loc[1, "weightedAverageShsOutDil"]
+    output_df.loc[idx, "outs_shares3"] = same_period_hist_df.reset_index().loc[2, "weightedAverageShsOutDil"]
+    output_df.loc[idx, "outs_shares4"] = same_period_hist_df.reset_index().loc[3, "weightedAverageShsOutDil"]
+    output_df.loc[idx, "outs_shares5"] = same_period_hist_df.reset_index().loc[4, "weightedAverageShsOutDil"]
+    output_df.loc[idx, "outs_shares6"] = same_period_hist_df.reset_index().loc[5, "weightedAverageShsOutDil"]
+    output_df.loc[idx, "outs_shares7"] = same_period_hist_df.reset_index().loc[6, "weightedAverageShsOutDil"]
+    output_df.loc[idx, "outs_shares8"] = same_period_hist_df.reset_index().loc[7, "weightedAverageShsOutDil"]
+    output_df.loc[idx, "outs_shares9"] = same_period_hist_df.reset_index().loc[8, "weightedAverageShsOutDil"]
+    output_df.loc[idx, "outs_shares10"] = same_period_hist_df.reset_index().loc[9, "weightedAverageShsOutDil"]
+    output_df.loc[idx, "outs_shares_slope_pct_10y"] = round(slope_percentage * 100, 2)
+    output_df.loc[idx, "outs_shares_slope_pct_5y"] = round(slope_percentage_5y * 100, 2)
+    output_df.loc[idx, "min_price_date"] = oldest_lowest_date
+    output_df.loc[idx, "min_price"] = oldest_lowest_price
+    output_df.loc[idx, "max_price_date"] = highest_date
+    output_df.loc[idx, "max_price"] = highest_price
+    output_df.loc[idx, "ncavps"] = ncavps
+    output_df.loc[idx, "liqvps"] = liqvps
+    output_df.loc[idx, "ncav_mos"] = round(oldest_lowest_price / ncavps, 2)
+    output_df.loc[idx, "liqv_mos"] = round(oldest_lowest_price / liqvps, 2)
+    output_df.loc[idx, "highest_return_delay"] = round(return_time_days / 365, 2)
+    output_df.loc[idx, "doubling_price"] = oldest_lowest_price * 2
+    output_df.loc[idx, "doubling_date"] = doubled_return_df.loc[0, "date"] if len(doubled_return_df) > 0 else None
+    output_df.loc[idx, "doubling_return_delay"] = round(doubled_return_days / 365, 2) if doubled_return_days is not None else None
+    output_df.loc[idx, "highest_return"] = round(return_percentage * 100, 2)
+
+    output_df.loc[idx, "min_price_modif"] = oldest_lowest_price * (1 + MODIF_CONSTANT)
+    output_df.loc[idx, "max_price_modif"] = highest_price * (1 - MODIF_CONSTANT)
+    output_df.loc[idx, "ncav_mos_modif"] = round(output_df.loc[idx, "min_price_modif"] / ncavps, 2)
+    output_df.loc[idx, "liqv_mos_modif"] = round(output_df.loc[idx, "min_price_modif"] / liqvps, 2)
+    output_df.loc[idx, "doubling_price_modif"] = output_df.loc[idx, "min_price_modif"] * 2
+    output_df.loc[idx, "highest_return_modif"] = round((output_df.loc[idx, "max_price_modif"] - output_df.loc[idx, "min_price_modif"]) * 100 / output_df.loc[idx, "min_price_modif"], 2)
+
+    break
+
+#output_df = output_df.reset_index(drop=True)
+print("output_df")
+print(output_df.head())

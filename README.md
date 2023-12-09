@@ -39,3 +39,7 @@ How it should happen in the past:
 - I select a given balance sheet, that will be my mrq balance sheet
 - I get the prices for every X period of time after the filling date of the selected balance sheet and before the filling date of the next balance sheet
 - I check whether for any of the extracted prices I am below intrinsic value
+
+#### last update 09/12/2023 : 
+
+ - Relaunch de tickers pipeline, stmts data pipeline and prices data before full backtesting
