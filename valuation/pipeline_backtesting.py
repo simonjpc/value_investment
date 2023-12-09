@@ -138,4 +138,53 @@ for test_symbol in filtered_tickers:
     slope_percentage = (end - start) / start
     slope_percentage_5y = (end_5y - start_5y) / start_5y
 
+    # Check if price in the future goes up after buying time
+
+    oldest_lowest_date, oldest_lowest_price = (
+        prices_df.loc[prices_df["low"] == min(prices_df["low"]), "date"].iloc[-1],
+        prices_df.loc[prices_df["low"] == min(prices_df["low"]), "low"].iloc[-1]
+    )
+    offset_3y = (oldest_lowest_date + pd.DateOffset(days=3*365)).date()
+
+    query = f"""
+    select *
+    from prices_history
+    where date >= '{oldest_lowest_date}' and date <= '{offset_3y}' and symbol = '{test_symbol}'
+    """
+
+    with engine.connect() as connection:
+        maybe_up_df = pd.read_sql(query, connection)
+    
+    highest_date, highest_price = (
+        maybe_up_df.loc[maybe_up_df["high"] == max(maybe_up_df["high"]), "date"].iloc[0],
+        maybe_up_df.loc[maybe_up_df["high"] == max(maybe_up_df["high"]), "high"].iloc[0],
+    )
+
+    # Percentage of return
+    return_percentage = (highest_price - oldest_lowest_price) / oldest_lowest_price
+
+    # Date of return
+    return_time_days = (highest_date - oldest_lowest_date).days
+    return_time_months = round(return_time_days / 30, 2)
+    return_time_years = round(return_time_days / 365, 2)
+
+    # Time to realize 100% of return
+    expected_return = oldest_lowest_price * 2
+
+    query = f"""
+    SELECT *
+    FROM prices_history
+    WHERE high > {expected_return} and symbol = '{test_symbol}' and date >= '{oldest_lowest_date}' and date <= '{offset_3y}'
+    ORDER BY high
+    LIMIT 1;
+    """
+    with engine.connect() as connection:
+        doubled_return_df = pd.read_sql(query, connection)
+
+    doubled_return_date = doubled_return_df.loc[0, "date"]
+
+    doubled_return_days = (doubled_return_date - oldest_lowest_date).days
+    doubled_return_months = round(doubled_return_days / 30, 2)
+    doubled_return_years = round(doubled_return_days / 365, 2)
+
     
