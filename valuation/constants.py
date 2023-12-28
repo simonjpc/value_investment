@@ -220,6 +220,47 @@ CREATE TABLE IF NOT EXISTS {table_name} (
 )
 """
 
+BACKTESTING_OUTPUT_QUERY = """
+CREATE TABLE IF NOT EXISTS {table_name} (
+    ticker varchar,
+    ref_report_date timestamp,
+    report_date timestamp,
+    ref_report_date_quarter varchar,
+    report_date_quarter varchar,
+    outs_shares1 numeric,
+    outs_shares2 numeric,
+    outs_shares3 numeric,
+    outs_shares4 numeric,
+    outs_shares5 numeric,
+    outs_shares6 numeric,
+    outs_shares7 numeric,
+    outs_shares8 numeric,
+    outs_shares9 numeric,
+    outs_shares10 numeric,
+    outs_shares_slope_pct_10y numeric,
+    outs_shares_slope_pct_5y numeric,
+    min_price_date timestamp,
+    min_price numeric,
+    max_price_date timestamp,
+    max_price numeric,
+    ncavps numeric,
+    liqvps numeric,
+    ncav_mos numeric,
+    liqv_mos numeric,
+    highest_return_delay numeric,
+    doubling_price numeric,
+    doubling_date timestamp,
+    doubling_return_delay numeric,
+    highest_return numeric,
+    min_price_modif numeric,
+    max_price_modif numeric,
+    ncav_mos_modif numeric,
+    liqv_mos_modif numeric,
+    doubling_price_modif numeric,
+    highest_return_modif numeric
+)
+"""
+
 INSERT_ELEMENT_IN_COL_QUERY = """
 INSERT INTO {table_name} ({col_name}) VALUES ('{element}')
 """
@@ -238,6 +279,7 @@ FINANCIAL_STMT_TABLE_NAME = "financial_stmts"
 PRICES_HISTORY_TABLE_NAME = "prices_history"
 ALL_TICKERS_TABLE_NAME = "company_tickers"
 ALL_DELISTED_TICKERS_TABLE_NAME = "delisted_company_tickers"
+BACKTESTING_TABLE_NAME = "backtesting_output"
 SQLALCHEMY_DB_PATH = "postgresql://{user}:{password}@{host}:{port}/{db}"
 INCOME_STMT_COLS_TO_DROP = [
     "symbol",
