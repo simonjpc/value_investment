@@ -1,20 +1,14 @@
+from typing import Any, Dict
+
 import numpy as np
 import pandas as pd
-from typing import Dict, Any
-from valuation.constants import (
-    TOTAL_CURR_ASSETS_KEY,
-    TOTAL_CURR_LIAB_KEY,
-    SHARES_OUTS_KEY,
-    CASH_AND_EQUIV_KEY,
-    RECEIVABLES_FACTOR_KEY,
-    NET_RECEIVABLES_KEY,
-    INVENTORY_FACTOR_KEY,
-    INVENTORY_KEY,
-    PPE_FACTOR_KEY,
-    PPE_KEY,
-    TOTAL_LIAB_KEY,
-    PRICE_KEY,
-)
+
+from valuation.constants import (CASH_AND_EQUIV_KEY, INVENTORY_FACTOR_KEY,
+                                 INVENTORY_KEY, NET_RECEIVABLES_KEY,
+                                 PPE_FACTOR_KEY, PPE_KEY, PRICE_KEY,
+                                 RECEIVABLES_FACTOR_KEY, SHARES_OUTS_KEY,
+                                 TOTAL_CURR_ASSETS_KEY, TOTAL_CURR_LIAB_KEY,
+                                 TOTAL_LIAB_KEY)
 
 
 def compute_current_ratio(deco: Dict[str, Any]) -> float:
@@ -57,7 +51,7 @@ def compute_ncavps(deco: Dict[str, Any]) -> float:
     if not isinstance(deco, (dict, pd.Series)):
         raise TypeError("`deco` attribute must be a dictionary")
     shares_outs = deco.get(SHARES_OUTS_KEY, 0)
-    if shares_outs == 0:
+    if shares_outs == 0 or shares_outs is None:
         return -np.Inf
     ncav = compute_ncav(deco)
     return ncav / shares_outs
@@ -66,7 +60,7 @@ def compute_liqvps(deco, factors):
     if not isinstance(deco, (dict, pd.Series)):
         raise TypeError("`deco` attribute must be a dictionary")
     shares_outs = deco.get(SHARES_OUTS_KEY, 0)
-    if shares_outs == 0:
+    if shares_outs == 0 or shares_outs is None:
         return -np.Inf
     liqv = compute_liqv(deco, factors)
     return liqv / shares_outs
