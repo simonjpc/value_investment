@@ -10,5 +10,6 @@ Python version 3.10.12
   - Create pipeline for delisted companies DONE
   - Execute pipeline for delisted companies DONE
   - Implement a way to separate existing from delisted companies and put a flag at the end of the backtesting table
-  - Relaunch de tickers pipeline, stmts data pipeline and prices data before full backtesting
-  - Clean and makes class and methods for backtesting methods. Test
+  - Relaunch the tickers pipeline, stmts data pipeline and prices data before full backtesting
+  - Clean and make classes and methods for backtesting methods
+  - Test
