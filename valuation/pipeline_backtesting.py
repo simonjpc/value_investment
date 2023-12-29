@@ -1,3 +1,9 @@
+"""
+This script is created with the intention of extracting information
+of the yields of companies considered under a mos based on some valuation
+method such as ncav/liqv or eps multiples
+"""
+
 from datetime import datetime
 
 import numpy as np
@@ -14,9 +20,16 @@ from valuation.liquidation import compute_liqvps, compute_ncavps
 injector = Injector()
 engine = create_engine(injector.db_uri, poolclass=QueuePool, pool_size=10, max_overflow=20)
 
+ticker_type = "delisted" # listed or delisted
+
+ticker_type_hashmap = {
+    "listed": "company_tickers",
+    "delisted": "delisted_company_tickers",
+}
+
 query = f"""
 select *
-from company_tickers
+from {ticker_type_hashmap[ticker_type]}
 """
 
 with engine.connect() as connection:
@@ -73,19 +86,21 @@ output_df = pd.DataFrame(
         "liqv_mos_modif",
         "doubling_price_modif",
         "highest_return_modif",
+        "ticker_type",
     ]
 )
 
 MODIF_CONSTANT = 0.20 # 20% arbitrary return reduction
 
 
-try:
+
+"""try:
     drop_query = "DROP TABLE backtesting_output;"
     with engine.connect() as connection:
         connection.execute(text(drop_query))
         connection.commit()
 except:
-    pass
+    pass"""
 
 connection = engine.connect()
 injector.execute_query(
@@ -250,6 +265,9 @@ for idx, test_symbol in enumerate(filtered_tickers):
     )
     offset_3y = (oldest_lowest_date + pd.DateOffset(days=3*365)).date()
 
+    if oldest_lowest_price > ncavps:
+        continue
+
     query = f"""
     select *
     from prices_history
@@ -331,9 +349,10 @@ for idx, test_symbol in enumerate(filtered_tickers):
     output_df.loc[idx, "liqv_mos_modif"] = round((liqvps - output_df.loc[idx, "min_price_modif"]) / liqvps, 2)
     output_df.loc[idx, "doubling_price_modif"] = output_df.loc[idx, "min_price_modif"] * 2
     output_df.loc[idx, "highest_return_modif"] = round((output_df.loc[idx, "max_price_modif"] - output_df.loc[idx, "min_price_modif"]) * 100 / output_df.loc[idx, "min_price_modif"], 2)
+    output_df.loc[idx, "ticker_type"] = ticker_type
 
-    if idx == 10:
-        break
+    #if idx > 20:
+    #    break
 
 #output_df = output_df.reset_index(drop=True)
 
