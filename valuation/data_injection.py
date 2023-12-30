@@ -1,9 +1,13 @@
 import os
+from typing import Any, Dict
+
 import pandas as pd
-from typing import Dict, Any
 import sqlalchemy
 from sqlalchemy import create_engine, text
-from valuation.constants import FINANCIAL_STMT_DUMP_QUERY, FINANCIAL_STMT_TABLE_NAME, SQLALCHEMY_DB_PATH
+
+from valuation.constants import (FINANCIAL_STMT_DUMP_QUERY,
+                                 FINANCIAL_STMT_TABLE_NAME, SQLALCHEMY_DB_PATH)
+
 
 class Injector:
     def __init__(self):
@@ -25,9 +29,10 @@ class Injector:
         df: pd.DataFrame,
         table_name: str,
         conn: sqlalchemy.engine,
+        if_exists: str = "append",
         idx_flag: bool = False,
     ) -> None:
-        df.to_sql(table_name, con=conn, if_exists="append", index=idx_flag)
+        df.to_sql(table_name, con=conn, if_exists=if_exists, index=idx_flag)
         
     def execute_query(self, query: str, connection: sqlalchemy.engine) -> None:
         connection.execute(text(query))

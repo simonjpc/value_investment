@@ -257,7 +257,8 @@ CREATE TABLE IF NOT EXISTS {table_name} (
     ncav_mos_modif numeric,
     liqv_mos_modif numeric,
     doubling_price_modif numeric,
-    highest_return_modif numeric
+    highest_return_modif numeric,
+    ticker_type varchar
 )
 """
 
