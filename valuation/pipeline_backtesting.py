@@ -261,20 +261,10 @@ for idx, test_symbol in enumerate(filtered_tickers):
             y_5y,
             1,
         )
-        print("slope: ", slope)
-        print("x: ", x)
-        print("y_intercept: ", y_intercept)
         start, end = (slope * x + y_intercept)[0], (slope * x + y_intercept)[-1]
-        print("start:", start)
-        print("end:", end)
         start_5y, end_5y = (slope_5y * x_5y + y_intercept_5y)[0], (slope_5y * x_5y + y_intercept_5y)[-1]
 
         slope_percentage = (end - start) / start
-        print("slope_percentage: ", slope_percentage)
-        if slope_percentage < -1:
-            quit()
-        else:
-            continue
         slope_percentage_5y = (end_5y - start_5y) / start_5y
 
         # Check if price in the future goes up after buying time
