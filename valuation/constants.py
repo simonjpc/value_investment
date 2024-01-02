@@ -266,6 +266,16 @@ INSERT_ELEMENT_IN_COL_QUERY = """
 INSERT INTO {table_name} ({col_name}) VALUES ('{element}')
 """
 
+GET_ALL_LISTED_TICKERS_QUERY = """
+SELECT ticker
+FROM company_tickers
+"""
+
+GET_ALL_DELISTED_TICKERS_QUERY = """
+SELECT ticker
+FROM delisted_company_tickers
+"""
+
 OLDEST_AND_NEWEST_FILLING_DATES_PER_SYMBOL_QUERY = """
     SELECT 
         symbol_bs,

@@ -1,25 +1,25 @@
-import sys
-import pandas as pd
-import multiprocessing
 import concurrent.futures
+import logging
+import multiprocessing
+import sys
+import time
+
+import pandas as pd
 from sqlalchemy import create_engine, exc
 from sqlalchemy.pool import QueuePool
-from valuation.extraction import get_income_stmt_info, get_balance_sheet_info
-from valuation.utils import drop_df_cols, add_suffix_to_cols, dict_to_df, batch_tickers
+
+from valuation.constants import (CREATE_INDEX_QUERY, FINANCIAL_STMT_DUMP_QUERY,
+                                 FINANCIAL_STMT_TABLE_NAME,
+                                 GET_ALL_DELISTED_TICKERS_QUERY,
+                                 GET_ALL_LISTED_TICKERS_QUERY,
+                                 INCOME_STMT_COLS_TO_DROP, TICKER_COL_NAME,
+                                 TICKER_IDX_NAME, TICKERS_PATH_ANCIENT,
+                                 TICKERS_PATH_RECENT)
 from valuation.data_injection import Injector
 from valuation.data_loading import DataLoader
-from valuation.constants import (
-    INCOME_STMT_COLS_TO_DROP,
-    FINANCIAL_STMT_DUMP_QUERY,
-    FINANCIAL_STMT_TABLE_NAME,
-    TICKERS_PATH_RECENT,
-    TICKERS_PATH_ANCIENT,
-    CREATE_INDEX_QUERY,
-    TICKER_IDX_NAME,
-    TICKER_COL_NAME,
-)
-import logging
-import time
+from valuation.extraction import get_balance_sheet_info, get_income_stmt_info
+from valuation.utils import (add_suffix_to_cols, batch_tickers, dict_to_df,
+                             drop_df_cols)
 
 logging.basicConfig(
     stream=sys.stdout, level=logging.getLevelName("INFO")
@@ -88,20 +88,24 @@ def single_ticker_pipeline(ticker):
 
 if __name__ == "__main__":
     # create table if it does not exist
-    log.info("very beginning")
+    log.info("starting...")
     dataloader = DataLoader()
     injector = Injector()
     log.info("dataloader & injector constructors called")
-    # data loading
-    tickers_recent = dataloader.load_tickers_from_txt(TICKERS_PATH_RECENT)
-    tickers_ancient = dataloader.load_tickers_from_txt(TICKERS_PATH_ANCIENT)
-    tickers = list(set(tickers_recent + tickers_ancient))
-    # batches creation
-    ticker_batches = batch_tickers(tickers=tickers, batch_size=90)
-    log.info("tickers loaded and batches created")
     
     connection = engine.connect()
     log.info("engine defined and first connection created")
+
+    # data loading
+    tickers_recent = pd.read_sql(GET_ALL_LISTED_TICKERS_QUERY, connection)
+    tickers_recent = tickers_recent["ticker"].tolist()
+    tickers_ancient = pd.read_sql(GET_ALL_DELISTED_TICKERS_QUERY, connection)
+    tickers_ancient = tickers_ancient["ticker"].tolist()
+    tickers = list(set(tickers_recent + tickers_ancient))
+
+    # batches creation
+    ticker_batches = batch_tickers(tickers=tickers, batch_size=90)
+    log.info("tickers loaded and batches created")
 
     try:
         # create table
