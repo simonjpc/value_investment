@@ -36,7 +36,7 @@ if __name__ == "__main__":
         pool_size=10,
         max_overflow=20,
     )
-    #try:
+
     with engine.connect() as connection:
         # public companies
         injector.execute_query(
@@ -92,5 +92,5 @@ if __name__ == "__main__":
             connection=connection,
             delisted_flag=True,
         )
-    #finally:
+
     engine.dispose()
