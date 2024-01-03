@@ -167,7 +167,7 @@ FINANCIAL_STMT_DUMP_QUERY = """
         revenue_is numeric, -- previous bigint til dump crash
         "costOfRevenue_is" numeric, -- previous bigint til dump crash
         "grossProfit_is" numeric, -- previous bigint til dump crash
-        "grossProfitRatio_is" integer,
+        "grossProfitRatio_is" numeric, -- previous integer til dump crash
         "researchAndDevelopmentExpenses_is" numeric, -- previous bigint til dump crash
         "generalAndAdministrativeExpenses_is" numeric, -- previous bigint til dump crash
         "sellingAndMarketingExpenses_is" numeric, -- previous bigint til dump crash
@@ -188,8 +188,8 @@ FINANCIAL_STMT_DUMP_QUERY = """
         "incomeTaxExpense_is" numeric, -- previous bigint til dump crash
         "netIncome_is" numeric, -- previous bigint til dump crash
         "netIncomeRatio_is" numeric,
-        eps_is integer,
-        epsdiluted_is integer,
+        eps_is numeric, -- previous integer til dump crash
+        epsdiluted_is numeric, -- previous integer til dump crash
         "weightedAverageShsOut_is" numeric, -- previous bigint til dump crash
         "weightedAverageShsOutDil_is" numeric -- previous bigint til dump crash
     )
