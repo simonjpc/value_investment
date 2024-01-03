@@ -3,6 +3,7 @@ import logging
 import multiprocessing
 import sys
 import time
+from typing import List
 
 import pandas as pd
 from sqlalchemy import create_engine, exc
@@ -34,7 +35,8 @@ engine = create_engine(
     max_overflow=20,
 )
 
-def single_ticker_pipeline(ticker):
+def single_ticker_pipeline(ticker: str):
+    failed_ticker = None
     income_stmt = get_income_stmt_info(
         ticker=ticker, period="quarter", limit=120,
     )
@@ -44,7 +46,7 @@ def single_ticker_pipeline(ticker):
     log.info("balance sheet & income stmt data loaded.")
 
     if not all([len(history) for history in (income_stmt, balance_sheet)]):
-        return False
+        return False, failed_ticker
 
     income_stmt_df = dict_to_df(fa_info=income_stmt)
     balance_sheet_df = dict_to_df(fa_info=balance_sheet)
@@ -81,10 +83,13 @@ def single_ticker_pipeline(ticker):
     try:
         injector.df_dump(df=financial_info, engine=engine)
     except:
-        raise("data dump failed")
-    log.info("data dump successful.")
+        failed_ticker = ticker
+        #print("ticker: ", ticker)
+        #raise("data dump failed")
+        log.info(f"data dump failed for {ticker}.")
+    log.info(f"data dump successful for {ticker}.")
     engine.dispose()
-    return True
+    return True, failed_ticker
 
 if __name__ == "__main__":
     # create table if it does not exist
@@ -127,6 +132,7 @@ if __name__ == "__main__":
 
         # Multiprocessing
         # We execute this per batch considering the limit of the api
+        dfc = []
         for idx, batch in enumerate(ticker_batches):
             log.info(f"Starting batch {idx + 1}/{len(ticker_batches)} with {len(batch)} tickers...")
 
@@ -135,7 +141,11 @@ if __name__ == "__main__":
                     executor.submit(single_ticker_pipeline, ticker) for ticker in batch
                 ]
                 for future in concurrent.futures.as_completed(dumping_futures):
-                    dumping_flag = future.result()
+                    dumping_output = future.result()
+                    dumping_flag = dumping_output[0]
+                    failed_ticker = dumping_output[1]
+                    if failed_ticker is not None:
+                        dfc.append(failed_ticker)
 
             log.info(f"batch {idx + 1} executed")
             log.info(f"waiting 1 min...")
@@ -147,3 +157,5 @@ if __name__ == "__main__":
     finally:
         connection.close()
         engine.dispose()
+    print()
+    print(f"Ticker with failed DB dump: {dfc}")
