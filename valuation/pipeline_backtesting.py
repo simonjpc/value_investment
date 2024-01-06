@@ -37,7 +37,7 @@ with engine.connect() as connection:
 
 tickers_list = tickers_df["ticker"].tolist()
 
-filtered_tickers = [
+"""filtered_tickers = [
     ticker for ticker in tickers_list if (
         "." not in ticker and
         "-" not in ticker and
@@ -45,7 +45,9 @@ filtered_tickers = [
         "^" not in ticker and
         "~" not in ticker
     )
-]
+]"""
+
+filtered_tickers = [ticker for ticker in tickers_list]
 
 # Table with all info
 output_df = pd.DataFrame(
