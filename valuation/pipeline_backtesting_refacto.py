@@ -29,7 +29,7 @@ log = logging.getLogger(__name__)
 injector = Injector()
 engine = create_engine(injector.db_uri, poolclass=QueuePool, pool_size=10, max_overflow=20)
 
-ticker_type = "listed" # listed or delisted
+ticker_type = "delisted" # listed or delisted
 
 ticker_type_hashmap = {
     "listed": "company_tickers",
@@ -207,11 +207,11 @@ def single_ticker_backtest(test_symbol):
         if len(y) < 2:
             continue
         slope, y_intercept = np.polyfit(
-            x,
-            same_period_hist_df.loc[~pd.isna(same_period_hist_df["weightedAverageShsOutDil"]), "weightedAverageShsOutDil"],
-            1,
+            x, y, 1,
         )
-        y_5y = same_period_hist_df.tail(5).loc[~pd.isna(same_period_hist_df.tail(5)["weightedAverageShsOutDil"]), "weightedAverageShsOutDil"]
+        #y_5y = same_period_hist_df.tail(5).loc[~pd.isna(same_period_hist_df.tail(5)["weightedAverageShsOutDil"]), "weightedAverageShsOutDil"]
+        y_5y = same_period_hist_df.head(5).loc[~pd.isna(same_period_hist_df.head(5)["weightedAverageShsOutDil"]), "weightedAverageShsOutDil"]
+
         x_5y = range(len(y_5y))
         if len(y_5y) < 2:
             continue
@@ -224,8 +224,23 @@ def single_ticker_backtest(test_symbol):
         start_5y, end_5y = (slope_5y * x_5y + y_intercept_5y)[0], (slope_5y * x_5y + y_intercept_5y)[-1]
 
         slope_percentage = (end - start) / start
+        #slope_percentage = (y.iloc[0] - y.iloc[-1]) / y.iloc[-1]
         slope_percentage_5y = (end_5y - start_5y) / start_5y
+        #slope_percentage_5y = (y_5y.iloc[0] - y_5y.iloc[-1]) / y_5y.iloc[-1]
 
+        print(f"slope_percentage for {test_symbol}")
+        print(slope_percentage)
+        print(f"slope_percentage_5y for {test_symbol}")
+        print(slope_percentage_5y)
+        print("same_period_hist_df")
+        print(same_period_hist_df.head())
+        print("y")
+        print(y)
+        print()
+        print("y_5y")
+        print(y_5y)
+        print()
+        quit()
         # Check if price in the future goes up after buying time
         oldest_lowest_date, oldest_lowest_price = (
             prices_df.loc[prices_df["low"] == min(prices_df["low"]), "date"].iloc[-1],
