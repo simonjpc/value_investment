@@ -1,17 +1,15 @@
+from datetime import datetime
+from typing import Any, Dict, List, Tuple, Union
+
+import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-from typing import List, Dict, Any, Tuple, Union
-import matplotlib.pyplot as plt
-from datetime import datetime
-from valuation.constants import (
-    COLS_TO_PLOT_EPSX,
-    COLS_TO_PLOT_NCAV,
-    COLS_WITH_SAME_SCALE,
-    SUBPLOT_NAMES,
-    DATE_FORMAT,
-    FUNDS_STOPWORDS,
-    DELISTED_COMPANY_NAME_KEY,
-)
+
+from valuation.constants import (COLS_TO_PLOT_EPSX, COLS_TO_PLOT_NCAV,
+                                 COLS_WITH_SAME_SCALE, DATE_FORMAT,
+                                 DELISTED_COMPANY_NAME_KEY, FUNDS_STOPWORDS,
+                                 SUBPLOT_NAMES)
+
 
 def get_key_from_iterator(
     iterator: List[Dict[str, Any]], key: str,
@@ -237,3 +235,17 @@ def filter_out_funds(delisted_objects: Dict[str, Any]) -> Dict[str, Any]:
         )
     ]
     return filtered_objects
+
+def usd_to_currency(
+    price: float, currency: str, exchanger: Dict[str, float]
+) -> float:
+    if currency not in exchanger or currency is None:
+        return None
+    return exchanger[currency] * price
+
+def currency_to_usd(
+    price: float, currency: str, exchanger: Dict[str, float]
+) -> float:
+    if currency not in exchanger or currency is None:
+        return None
+    return price / exchanger[currency]

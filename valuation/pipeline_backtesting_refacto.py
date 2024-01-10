@@ -7,6 +7,7 @@ method such as ncav/liqv or eps multiples
 import concurrent.futures
 import logging
 import sys
+import time
 from datetime import datetime
 
 import numpy as np
@@ -16,10 +17,10 @@ from sqlalchemy.pool import QueuePool
 
 from valuation.constants import (BACKTESTING_OUTPUT_QUERY,
                                  BACKTESTING_TABLE_NAME, CREATE_INDEX_QUERY,
-                                 CURRENT_ASSETS_FACTORS)
+                                 CURRENT_ASSETS_FACTORS, RATES_TO_USD)
 from valuation.data_injection import Injector
 from valuation.liquidation import compute_liqvps, compute_ncavps
-from valuation.utils import batch_tickers
+from valuation.utils import batch_tickers, currency_to_usd, usd_to_currency
 
 logging.basicConfig(
     stream=sys.stdout, level=logging.getLevelName("INFO")
@@ -88,7 +89,7 @@ MODIF_CONSTANT = 0.20 # 20% arbitrary return reduction
 
 def single_ticker_backtest(test_symbol):
     query = f"""
-    SELECT "fillingDate_bs", period_bs
+    SELECT "fillingDate_bs", period_bs, "reportedCurrency_bs"
     FROM financial_stmts
     WHERE symbol_bs = '{test_symbol}'
     """
@@ -100,6 +101,10 @@ def single_ticker_backtest(test_symbol):
     with engine.connect() as connection:
         df = pd.read_sql(query, connection)
 
+    if len(df) == 0:
+        return pd.DataFrame()
+
+    currency = df.loc[0, "reportedCurrency_bs"]
     df = df.sort_values(by="fillingDate_bs", ascending=True)
 
     dates = df["fillingDate_bs"].tolist()
@@ -165,6 +170,11 @@ def single_ticker_backtest(test_symbol):
             factors=CURRENT_ASSETS_FACTORS
         )
 
+        ncavps = currency_to_usd(ncavps, currency, RATES_TO_USD)
+        liqvps = currency_to_usd(liqvps, currency, RATES_TO_USD)
+        if ncavps is None:
+            continue
+
         # Get prices from the least oldest stmt til the day before the following stmt
         offset_date_financials = offset_date_financials.reset_index(drop=True)
         least_oldest_date = offset_date_financials.loc[0, "date"]
@@ -196,7 +206,7 @@ def single_ticker_backtest(test_symbol):
 
         if len(prices_df) == 0:
             continue
-
+        
         fct = 1 # should be more like 0.5 when implemented in the script
         prices_df[prices_df["low"] < ncavps * fct]
 
@@ -228,7 +238,7 @@ def single_ticker_backtest(test_symbol):
         slope_percentage_5y = (end_5y - start_5y) / start_5y
         #slope_percentage_5y = (y_5y.iloc[0] - y_5y.iloc[-1]) / y_5y.iloc[-1]
 
-        print(f"slope_percentage for {test_symbol}")
+        """print(f"slope_percentage for {test_symbol}")
         print(slope_percentage)
         print(f"slope_percentage_5y for {test_symbol}")
         print(slope_percentage_5y)
@@ -240,7 +250,7 @@ def single_ticker_backtest(test_symbol):
         print("y_5y")
         print(y_5y)
         print()
-        quit()
+        quit()"""
         # Check if price in the future goes up after buying time
         oldest_lowest_date, oldest_lowest_price = (
             prices_df.loc[prices_df["low"] == min(prices_df["low"]), "date"].iloc[-1],
@@ -407,7 +417,7 @@ if __name__ == "__main__":
 
     filtered_tickers = [ticker for ticker in tickers_list]
 
-    batches = batch_tickers(tickers=filtered_tickers, batch_size=60)
+    batches = batch_tickers(tickers=filtered_tickers, batch_size=80)
 
     """try:
         drop_query = "DROP TABLE backtesting_output;"
@@ -444,14 +454,14 @@ if __name__ == "__main__":
                     executor.submit(
                         single_ticker_backtest,
                         ticker,
-                    ) for ticker in batch[:500]
+                    ) for ticker in batch
                 ]
                 for future in concurrent.futures.as_completed(dumping_futures):
                     single_ticker_df = future.result()
                     batch_df = pd.concat([batch_df, single_ticker_df], axis=0)
             output_df = pd.concat([output_df, batch_df], axis=0)
             log.info(f"batch {idx + 1} executed")
-            #time.sleep(61)
+            time.sleep(55)
 
         output_df = output_df.reset_index(drop=True)
 
