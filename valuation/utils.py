@@ -4,6 +4,7 @@ from typing import Any, Dict, List, Tuple, Union
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
+import sqlalchemy
 
 from valuation.constants import (COLS_TO_PLOT_EPSX, COLS_TO_PLOT_NCAV,
                                  COLS_WITH_SAME_SCALE, DATE_FORMAT,
@@ -249,3 +250,17 @@ def currency_to_usd(
     if currency not in exchanger or currency is None:
         return None
     return price / exchanger[currency]
+
+def load_df_from_db(
+    query: str, connection: sqlalchemy.engine, **kwargs
+) -> pd.DataFrame:
+    if not isinstance(query, str):
+        raise TypeError("attribute `query` should be of type string")
+    df = pd.read_sql(query.format(**kwargs), connection)
+    return df
+
+def remove_cols_suffix(df: pd.DataFrame)-> pd.DataFrame:
+    cols = list(df.columns)
+    cols = [col.split("_")[0] for col in cols]
+    df.columns = cols
+    return df
