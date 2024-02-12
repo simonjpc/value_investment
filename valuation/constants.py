@@ -262,6 +262,46 @@ CREATE TABLE IF NOT EXISTS {table_name} (
 )
 """
 
+BACKTESTING_COL_NAMES = [
+    "ticker",
+    "ref_report_date",
+    "report_date",
+    "ref_report_date_quarter",
+    "report_date_quarter",
+    "outs_shares1",
+    "outs_shares2",
+    "outs_shares3",
+    "outs_shares4",
+    "outs_shares5",
+    "outs_shares6",
+    "outs_shares7",
+    "outs_shares8",
+    "outs_shares9",
+    "outs_shares10",
+    "outs_shares_slope_pct_10y",
+    "outs_shares_slope_pct_5y",
+    "min_price_date",
+    "min_price",
+    "max_price_date",
+    "max_price",
+    "ncavps",
+    "liqvps",
+    "ncav_mos",
+    "liqv_mos",
+    "highest_return_delay",
+    "doubling_price",
+    "doubling_date",
+    "doubling_return_delay",
+    "highest_return",
+    "min_price_modif",
+    "max_price_modif",
+    "ncav_mos_modif",
+    "liqv_mos_modif",
+    "doubling_price_modif",
+    "highest_return_modif",
+    "ticker_type",
+]
+
 INSERT_ELEMENT_IN_COL_QUERY = """
 INSERT INTO {table_name} ({col_name}) VALUES ('{element}')
 """
@@ -378,3 +418,19 @@ RATES_TO_USD = {
     "ZAR": 18.68205,
     "ZMW": 25.965891,
 }
+
+# queries
+DATE_PERIOD_CURRENCY_PER_SYMBOL = """
+    SELECT "fillingDate_bs", period_bs, "reportedCurrency_bs"
+    FROM financial_stmts
+    WHERE symbol_bs = '{test_symbol}'
+"""
+
+ALL_INFO_PER_SYMBOL_PERIOD_DATERANGE = """
+    select *
+    from financial_stmts
+    where symbol_bs = '{test_symbol}' and
+        period_bs = '{oldest_period}' and
+        "fillingDate_bs" >= '{oldest_date}' and
+        "fillingDate_bs" <= '{offset_date}'
+"""

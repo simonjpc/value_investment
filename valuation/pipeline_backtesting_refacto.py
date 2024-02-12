@@ -15,12 +15,16 @@ import pandas as pd
 from sqlalchemy import create_engine, exc, text
 from sqlalchemy.pool import QueuePool
 
-from valuation.constants import (BACKTESTING_OUTPUT_QUERY,
+from valuation.constants import (ALL_INFO_PER_SYMBOL_PERIOD_DATERANGE,
+                                 BACKTESTING_COL_NAMES,
+                                 BACKTESTING_OUTPUT_QUERY,
                                  BACKTESTING_TABLE_NAME, CREATE_INDEX_QUERY,
-                                 CURRENT_ASSETS_FACTORS, RATES_TO_USD)
+                                 CURRENT_ASSETS_FACTORS,
+                                 DATE_PERIOD_CURRENCY_PER_SYMBOL, RATES_TO_USD)
 from valuation.data_injection import Injector
 from valuation.liquidation import compute_liqvps, compute_ncavps
-from valuation.utils import batch_tickers, currency_to_usd, usd_to_currency
+from valuation.utils import (batch_tickers, currency_to_usd, load_df_from_db,
+                             remove_cols_suffix)
 
 logging.basicConfig(
     stream=sys.stdout, level=logging.getLevelName("INFO")
@@ -39,47 +43,7 @@ ticker_type_hashmap = {
 
 
 # Table with all info
-output_df = pd.DataFrame(
-    columns=[
-        "ticker",
-        "ref_report_date",
-        "report_date",
-        "ref_report_date_quarter",
-        "report_date_quarter",
-        "outs_shares1",
-        "outs_shares2",
-        "outs_shares3",
-        "outs_shares4",
-        "outs_shares5",
-        "outs_shares6",
-        "outs_shares7",
-        "outs_shares8",
-        "outs_shares9",
-        "outs_shares10",
-        "outs_shares_slope_pct_10y",
-        "outs_shares_slope_pct_5y",
-        "min_price_date",
-        "min_price",
-        "max_price_date",
-        "max_price",
-        "ncavps",
-        "liqvps",
-        "ncav_mos",
-        "liqv_mos",
-        "highest_return_delay",
-        "doubling_price",
-        "doubling_date",
-        "doubling_return_delay",
-        "highest_return",
-        "min_price_modif",
-        "max_price_modif",
-        "ncav_mos_modif",
-        "liqv_mos_modif",
-        "doubling_price_modif",
-        "highest_return_modif",
-        "ticker_type",
-    ]
-)
+output_df = pd.DataFrame(columns=BACKTESTING_COL_NAMES)
 
 MODIF_CONSTANT = 0.20 # 20% arbitrary return reduction
 
@@ -87,19 +51,22 @@ MODIF_CONSTANT = 0.20 # 20% arbitrary return reduction
 
 # --------------------------------------------------------------------------------------------------------
 
+
 def single_ticker_backtest(test_symbol):
-    query = f"""
-    SELECT "fillingDate_bs", period_bs, "reportedCurrency_bs"
-    FROM financial_stmts
-    WHERE symbol_bs = '{test_symbol}'
-    """
 
     offset_3y = None # no date for 3y offset in the beginning
     doubled = True # doubled return flag as True by default
     return_time_days = None #
 
+    #query = f"""
+    #SELECT "fillingDate_bs", period_bs, "reportedCurrency_bs"
+    #FROM financial_stmts
+    #WHERE symbol_bs = '{test_symbol}'
+    #"""
+    #with engine.connect() as connection:
+    #    df = pd.read_sql(query, connection)
     with engine.connect() as connection:
-        df = pd.read_sql(query, connection)
+        df = load_df_from_db(DATE_PERIOD_CURRENCY_PER_SYMBOL, connection, test_symbol=test_symbol)
 
     if len(df) == 0:
         return pd.DataFrame()
@@ -139,26 +106,40 @@ def single_ticker_backtest(test_symbol):
             offset_date = datetime.today().date()
         oldest_date = oldest_date.date()
         
-        query = f"""
-        select *
-        from financial_stmts
-        where symbol_bs = '{test_symbol}' and
-            period_bs = '{oldest_period}' and
-            "fillingDate_bs" >= '{oldest_date}' and
-            "fillingDate_bs" <= '{offset_date}'
-        """
+        #query = f"""
+        #select *
+        #from financial_stmts
+        #where symbol_bs = '{test_symbol}' and
+        #    period_bs = '{oldest_period}' and
+        #    "fillingDate_bs" >= '{oldest_date}' and
+        #    "fillingDate_bs" <= '{offset_date}'
+        #"""
 
         with engine.connect() as connection:
-            same_period_hist_df = pd.read_sql(query, connection)
+            #same_period_hist_df = pd.read_sql(query, connection)
+            same_period_hist_df = load_df_from_db(
+                ALL_INFO_PER_SYMBOL_PERIOD_DATERANGE,
+                connection,
+                test_symbol=test_symbol,
+                oldest_period=oldest_period,
+                oldest_date=oldest_date,
+                offset_date=offset_date,
+            )
+        
         # this could have no output if the filling period is not the same throughtout the 10 years
         same_period_hist_df = same_period_hist_df.sort_values("date")
 
         # Compute valuation with info from fillingDate_bs of oldest + 10 years
         # (most recent row of `same_period_hist_df`)
-        cols = list(same_period_hist_df.columns)
-        cols = [col.split("_")[0] for col in cols]
-        same_period_hist_df.columns = cols
-
+        
+        #cols = list(same_period_hist_df.columns)
+        #cols = [col.split("_")[0] for col in cols]
+        #same_period_hist_df.columns = cols
+        
+        same_period_hist_df = remove_cols_suffix(same_period_hist_df)
+        ########### -----------
+        ########### STOPPED HERE
+        ########### -----------
         offset_date_financials = same_period_hist_df[
             same_period_hist_df["fillingDate"] == max(same_period_hist_df["fillingDate"])
         ]
@@ -350,45 +331,46 @@ def single_ticker_backtest(test_symbol):
                     ticker_type,
                 ]
             ],
-            columns=[
-                "ticker",
-                "ref_report_date",
-                "report_date",
-                "ref_report_date_quarter",
-                "report_date_quarter",
-                "outs_shares1",
-                "outs_shares2",
-                "outs_shares3",
-                "outs_shares4",
-                "outs_shares5",
-                "outs_shares6",
-                "outs_shares7",
-                "outs_shares8",
-                "outs_shares9",
-                "outs_shares10",
-                "outs_shares_slope_pct_10y",
-                "outs_shares_slope_pct_5y",
-                "min_price_date",
-                "min_price",
-                "max_price_date",
-                "max_price",
-                "ncavps",
-                "liqvps",
-                "ncav_mos",
-                "liqv_mos",
-                "highest_return_delay",
-                "doubling_price",
-                "doubling_date",
-                "doubling_return_delay",
-                "highest_return",
-                "min_price_modif",
-                "max_price_modif",
-                "ncav_mos_modif",
-                "liqv_mos_modif",
-                "doubling_price_modif",
-                "highest_return_modif",
-                "ticker_type",
-            ]
+            columns=BACKTESTING_COL_NAMES
+            #columns=[
+            #    "ticker",
+            #    "ref_report_date",
+            #    "report_date",
+            #    "ref_report_date_quarter",
+            #    "report_date_quarter",
+            #    "outs_shares1",
+            #    "outs_shares2",
+            #    "outs_shares3",
+            #    "outs_shares4",
+            #    "outs_shares5",
+            #    "outs_shares6",
+            #    "outs_shares7",
+            #    "outs_shares8",
+            #    "outs_shares9",
+            #    "outs_shares10",
+            #    "outs_shares_slope_pct_10y",
+            #    "outs_shares_slope_pct_5y",
+            #    "min_price_date",
+            #    "min_price",
+            #    "max_price_date",
+            #    "max_price",
+            #    "ncavps",
+            #    "liqvps",
+            #    "ncav_mos",
+            #    "liqv_mos",
+            #    "highest_return_delay",
+            #    "doubling_price",
+            #    "doubling_date",
+            #    "doubling_return_delay",
+            #    "highest_return",
+            #    "min_price_modif",
+            #    "max_price_modif",
+            #    "ncav_mos_modif",
+            #    "liqv_mos_modif",
+            #    "doubling_price_modif",
+            #    "highest_return_modif",
+            #    "ticker_type",
+            #]
         )
 
         single_ticker_df = pd.concat([single_ticker_df, tmp_df], axis=0)
@@ -430,7 +412,7 @@ if __name__ == "__main__":
     connection = engine.connect()
 
     try:
-        injector.execute_query(
+        """injector.execute_query(
             BACKTESTING_OUTPUT_QUERY.format(
                 table_name=BACKTESTING_TABLE_NAME,
             ),
@@ -444,7 +426,7 @@ if __name__ == "__main__":
                 column_name="ticker",
             ),
             connection=connection,
-        )
+        )"""
         #connection.close()
         for idx, batch in enumerate(batches):
             log.info(f"Starting batch {idx + 1}/{len(batches)} with {len(batch)} tickers...")
