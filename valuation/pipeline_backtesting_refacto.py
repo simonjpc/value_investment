@@ -20,7 +20,8 @@ from valuation.constants import (ALL_INFO_PER_SYMBOL_PERIOD_DATERANGE,
                                  BACKTESTING_OUTPUT_QUERY,
                                  BACKTESTING_TABLE_NAME, CREATE_INDEX_QUERY,
                                  CURRENT_ASSETS_FACTORS,
-                                 DATE_PERIOD_CURRENCY_PER_SYMBOL, RATES_TO_USD)
+                                 DATE_PERIOD_CURRENCY_PER_SYMBOL,
+                                 DATES_PERIOD_PER_DATE_SYMBOL, RATES_TO_USD)
 from valuation.data_injection import Injector
 from valuation.liquidation import compute_liqvps, compute_ncavps
 from valuation.utils import (batch_tickers, currency_to_usd, load_df_from_db,
@@ -137,9 +138,7 @@ def single_ticker_backtest(test_symbol):
         #same_period_hist_df.columns = cols
         
         same_period_hist_df = remove_cols_suffix(same_period_hist_df)
-        ########### -----------
-        ########### STOPPED HERE
-        ########### -----------
+        
         offset_date_financials = same_period_hist_df[
             same_period_hist_df["fillingDate"] == max(same_period_hist_df["fillingDate"])
         ]
@@ -160,18 +159,30 @@ def single_ticker_backtest(test_symbol):
         offset_date_financials = offset_date_financials.reset_index(drop=True)
         least_oldest_date = offset_date_financials.loc[0, "date"]
 
-        query = f"""
-        SELECT date, "fillingDate_bs", period_bs
-        FROM financial_stmts
-        WHERE date > '{least_oldest_date}' and symbol_bs = '{test_symbol}'
-        ORDER BY date
-        LIMIT 1;
-        """
+        # query = f"""
+        # SELECT date, "fillingDate_bs", period_bs
+        # FROM financial_stmts
+        # WHERE date > '{least_oldest_date}' and symbol_bs = '{test_symbol}'
+        # ORDER BY date
+        # LIMIT 1;
+        # """
+        # with engine.connect() as connection:
+        #     df = pd.read_sql(query, connection)
+        
         with engine.connect() as connection:
-            df = pd.read_sql(query, connection)
+            df = load_df_from_db(
+                DATES_PERIOD_PER_DATE_SYMBOL,
+                connection,
+                least_oldest_date=least_oldest_date,
+                test_symbol=test_symbol,
+            )
 
         if len(df) == 0:
             continue
+            
+        ########### -----------
+        ########### STOPPED HERE
+        ########### -----------
 
         next_filling_date = df.loc[0, "fillingDate_bs"].date()
         plateau_date = (next_filling_date - pd.DateOffset(days=1)).date()
