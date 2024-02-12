@@ -434,3 +434,11 @@ ALL_INFO_PER_SYMBOL_PERIOD_DATERANGE = """
         "fillingDate_bs" >= '{oldest_date}' and
         "fillingDate_bs" <= '{offset_date}'
 """
+
+DATES_PERIOD_PER_DATE_SYMBOL = """
+    SELECT date, "fillingDate_bs", period_bs
+    FROM financial_stmts
+    WHERE date > '{least_oldest_date}' and symbol_bs = '{test_symbol}'
+    ORDER BY date
+    LIMIT 1;
+"""
