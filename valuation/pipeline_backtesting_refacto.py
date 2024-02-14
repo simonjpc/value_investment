@@ -16,7 +16,9 @@ from sqlalchemy import create_engine, exc, text
 from sqlalchemy.pool import QueuePool
 
 from valuation.constants import (ALL_INFO_PER_SYMBOL_PERIOD_DATERANGE,
+                                 ALL_PER_SYMBOL_TYPE,
                                  ALL_PRICE_HIST_PER_DATE_OFFSET_SYMBOL,
+                                 ALL_PRICE_HIST_PER_E_VAL_SYMBOL_DATE_OFFSET,
                                  ALL_PRICE_HIST_PER_SYMBOL_DATES,
                                  BACKTESTING_COL_NAMES,
                                  BACKTESTING_OUTPUT_QUERY,
@@ -300,18 +302,29 @@ def single_ticker_backtest(test_symbol):
         # Time to realize 100% of return
         expected_return = oldest_lowest_price * 2
 
-        query = f"""
-        SELECT *
-        FROM prices_history
-        WHERE high > {expected_return} and symbol = '{test_symbol}' and date >= '{oldest_lowest_date}' and date <= '{offset_3y}'
-        ORDER BY high
-        LIMIT 1;
-        """
+        # query = f"""
+        # SELECT *
+        # FROM prices_history
+        # WHERE high > {expected_return} and symbol = '{test_symbol}' and date >= '{oldest_lowest_date}' and date <= '{offset_3y}'
+        # ORDER BY high
+        # LIMIT 1;
+        # """
+        # with engine.connect() as connection:
+        #     doubled_return_df = pd.read_sql(query, connection)
+
         with engine.connect() as connection:
-            doubled_return_df = pd.read_sql(query, connection)
+            doubled_return_df = load_df_from_db(
+                ALL_PRICE_HIST_PER_E_VAL_SYMBOL_DATE_OFFSET,
+                connection,
+                expected_return=expected_return,
+                test_symbol=test_symbol,
+                oldest_lowest_date=oldest_lowest_date,
+                offset_3y=offset_3y,
+            )
 
         connection.close()
         engine.dispose()
+
         if len(doubled_return_df) > 0:
             doubled_return_date = doubled_return_df.loc[0, "date"]
             doubled_return_days = (doubled_return_date - oldest_lowest_date).days
@@ -409,13 +422,21 @@ def single_ticker_backtest(test_symbol):
     return single_ticker_df
 
 if __name__ == "__main__":
-    query = f"""
-    select *
-    from {ticker_type_hashmap[ticker_type]}
-    """
+
+    #query = f"""
+    #select *
+    #from {ticker_type_hashmap[ticker_type]}
+    #"""
+    #
+    #with engine.connect() as connection:
+    #    tickers_df = pd.read_sql(query, connection)
 
     with engine.connect() as connection:
-        tickers_df = pd.read_sql(query, connection)
+        tickers_df = load_df_from_db(
+            ALL_PER_SYMBOL_TYPE,
+            connection,
+            symbol_type_table=ticker_type_hashmap[ticker_type],
+        )
 
     tickers_list = tickers_df["ticker"].tolist()
 
