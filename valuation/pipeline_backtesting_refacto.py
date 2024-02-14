@@ -501,11 +501,11 @@ if __name__ == "__main__":
         output_df = output_df.reset_index(drop=True)
 
         #with engine.connect() as connection:
-        injector.df_to_db(
+        """injector.df_to_db(
             df=output_df,
             table_name=BACKTESTING_TABLE_NAME,
             conn=connection,
-        )
+        )"""
 
         #engine.dispose()
 
