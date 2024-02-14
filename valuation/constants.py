@@ -454,3 +454,16 @@ ALL_PRICE_HIST_PER_DATE_OFFSET_SYMBOL = """
     from prices_history
     where date >= '{oldest_lowest_date}' and date <= '{offset_3y}' and symbol = '{test_symbol}'
 """
+
+ALL_PRICE_HIST_PER_E_VAL_SYMBOL_DATE_OFFSET = """
+    SELECT *
+    FROM prices_history
+    WHERE high > {expected_return} and symbol = '{test_symbol}' and date >= '{oldest_lowest_date}' and date <= '{offset_3y}'
+    ORDER BY high
+    LIMIT 1;
+"""
+
+ALL_PER_SYMBOL_TYPE = """
+    select *
+    from {symbol_type_table}
+"""
