@@ -16,6 +16,8 @@ from sqlalchemy import create_engine, exc, text
 from sqlalchemy.pool import QueuePool
 
 from valuation.constants import (ALL_INFO_PER_SYMBOL_PERIOD_DATERANGE,
+                                 ALL_PRICE_HIST_PER_DATE_OFFSET_SYMBOL,
+                                 ALL_PRICE_HIST_PER_SYMBOL_DATES,
                                  BACKTESTING_COL_NAMES,
                                  BACKTESTING_OUTPUT_QUERY,
                                  BACKTESTING_TABLE_NAME, CREATE_INDEX_QUERY,
@@ -188,13 +190,22 @@ def single_ticker_backtest(test_symbol):
         plateau_date = (next_filling_date - pd.DateOffset(days=1)).date()
         next_filling_date, plateau_date
 
-        query = f"""
-        select *
-        from prices_history
-        where symbol = '{test_symbol}' and date >= '{least_oldest_date}' and date <= '{plateau_date}'
-        """
+        #query = f"""
+        #select *
+        #from prices_history
+        #where symbol = '{test_symbol}' and date >= '{least_oldest_date}' and date <= '{plateau_date}'
+        #"""
+        #with engine.connect() as connection:
+        #    prices_df = pd.read_sql(query, connection)
+
         with engine.connect() as connection:
-            prices_df = pd.read_sql(query, connection)
+            prices_df = load_df_from_db(
+                ALL_PRICE_HIST_PER_SYMBOL_DATES,
+                connection,
+                test_symbol=test_symbol,
+                least_oldest_date=least_oldest_date,
+                plateau_date=plateau_date,
+            )
 
         if len(prices_df) == 0:
             continue
@@ -254,14 +265,24 @@ def single_ticker_backtest(test_symbol):
         if oldest_lowest_price > ncavps:
             continue
 
-        query = f"""
-        select *
-        from prices_history
-        where date >= '{oldest_lowest_date}' and date <= '{offset_3y}' and symbol = '{test_symbol}'
-        """
+        #query = f"""
+        #select *
+        #from prices_history
+        #where date >= '{oldest_lowest_date}' and date <= '{offset_3y}' and symbol = '{test_symbol}'
+        #"""
+        #
+        #with engine.connect() as connection:
+        #    maybe_up_df = pd.read_sql(query, connection)
 
+        
         with engine.connect() as connection:
-            maybe_up_df = pd.read_sql(query, connection)
+            maybe_up_df = load_df_from_db(
+                ALL_PRICE_HIST_PER_DATE_OFFSET_SYMBOL,
+                connection,
+                oldest_lowest_date=oldest_lowest_date,
+                offset_3y=offset_3y,
+                test_symbol=test_symbol,
+            )
         
         highest_date, highest_price = (
             maybe_up_df.loc[maybe_up_df["high"] == max(maybe_up_df["high"]), "date"].iloc[0],
