@@ -442,3 +442,15 @@ DATES_PERIOD_PER_DATE_SYMBOL = """
     ORDER BY date
     LIMIT 1;
 """
+
+ALL_PRICE_HIST_PER_SYMBOL_DATES = """
+    select *
+    from prices_history
+    where symbol = '{test_symbol}' and date >= '{least_oldest_date}' and date <= '{plateau_date}'
+"""
+
+ALL_PRICE_HIST_PER_DATE_OFFSET_SYMBOL = """
+    select *
+    from prices_history
+    where date >= '{oldest_lowest_date}' and date <= '{offset_3y}' and symbol = '{test_symbol}'
+"""
