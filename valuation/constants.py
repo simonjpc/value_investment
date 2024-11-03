@@ -487,7 +487,7 @@ ALL_PER_SYMBOL_TYPE = """
     from {symbol_type_table}
 """
 
-POTENTIAL_CANDIDATES_TABLE_QUERY = """
+CURRENT_PRICES_TABLE_QUERY = """
 CREATE TABLE IF NOT EXISTS {table_name} (
     ticker VARCHAR NOT NULL,
     price numeric
