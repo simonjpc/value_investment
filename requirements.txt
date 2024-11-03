@@ -24,6 +24,7 @@ pexpect
 pickleshare
 Pillow
 prompt-toolkit
+psycopg2-binary
 ptyprocess
 Pygments
 pyparsing
@@ -34,8 +35,10 @@ pyzmq
 requests
 sec-edgar-api
 six
+sqlalchemy
 tornado
 traitlets
+tqdm
 urllib3
 wcwidth
 xlrd
