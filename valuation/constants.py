@@ -6,7 +6,7 @@ INTANGIBLE_ASSETS_KEY = "intangibleAssets"
 TOTAL_LIAB_KEY = "totalLiabilities"
 GOODWILL_AND_INTANGILE_ASSETS_KEY = "goodwillAndIntangibleAssets"
 SHARES_OUTS_KEY = "weightedAverageShsOutDil"
-CASH_AND_EQUIV_KEY  = "cashAndCashEquivalents"
+CASH_AND_EQUIV_KEY = "cashAndCashEquivalents"
 NET_RECEIVABLES_KEY = "netReceivables"
 INVENTORY_KEY = "inventory"
 PPE_KEY = "propertyPlantEquipmentNet"
@@ -42,20 +42,20 @@ CURRENT_ASSETS_FACTORS = {
 # Columns constants
 REPORTING_DATE_PRICE_COL = "reporting_date_price"
 COLS_TO_PLOT_EPSX = [
-        "pfvps",
-        "pe_ratio",
-        "revenue",
-        "netIncome",
-        "eps",
-        "totalAssets",
-        "totalLiabilities",
-        "totalEquity",
-        "tangible_book_value_ps",
-        "weightedAverageShsOutDil",
-        "de_ratio1",
-        "de_ratio2",
-        "de_ratio3",
-    ]
+    "pfvps",
+    "pe_ratio",
+    "revenue",
+    "netIncome",
+    "eps",
+    "totalAssets",
+    "totalLiabilities",
+    "totalEquity",
+    "tangible_book_value_ps",
+    "weightedAverageShsOutDil",
+    "de_ratio1",
+    "de_ratio2",
+    "de_ratio3",
+]
 COLS_TO_PLOT_NCAV = [
     "ncavps",
     "liqvps",
@@ -262,6 +262,25 @@ CREATE TABLE IF NOT EXISTS {table_name} (
 )
 """
 
+ALL_TICKERS_QUERY = """
+    SELECT ticker
+    FROM company_tickers
+"""
+
+LAST_TICKER_FINANCIAL_STMT_QUERY = """
+    SELECT *
+    FROM financial_stmts
+    WHERE symbol_bs = '{ticker}'
+    ORDER BY date DESC
+    LIMIT 1;
+"""
+
+TICKER_FINANCIAL_STMTS_IN_RANGE_QUERY = """
+    SELECT *
+    FROM financial_stmts
+    WHERE symbol_bs = '{ticker}' and period_bs = '{period}'
+"""
+
 BACKTESTING_COL_NAMES = [
     "ticker",
     "ref_report_date",
@@ -466,4 +485,11 @@ ALL_PRICE_HIST_PER_E_VAL_SYMBOL_DATE_OFFSET = """
 ALL_PER_SYMBOL_TYPE = """
     select *
     from {symbol_type_table}
+"""
+
+CURRENT_PRICES_TABLE_QUERY = """
+CREATE TABLE IF NOT EXISTS {table_name} (
+    ticker VARCHAR NOT NULL,
+    price numeric
+)
 """
