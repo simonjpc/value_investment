@@ -493,3 +493,10 @@ CREATE TABLE IF NOT EXISTS {table_name} (
     price numeric
 )
 """
+
+TABLES_TO_DROP = [
+    "company_tickers",
+    "delisted_company_tickers",
+    "financial_stmts",
+    "prices_history",
+]
