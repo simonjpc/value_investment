@@ -494,6 +494,11 @@ CREATE TABLE IF NOT EXISTS {table_name} (
 )
 """
 
+TERMINATE_ALL_CONNECTIONS_QUERY = """
+    SELECT pg_terminate_backend (pg_stat_activity.pid)
+    FROM pg_stat_activity
+    WHERE pid <> pg_backend_pid()
+    """
 TABLES_TO_DROP = [
     "company_tickers",
     "delisted_company_tickers",
