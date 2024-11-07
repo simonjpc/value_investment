@@ -4,21 +4,16 @@ import concurrent.futures
 import time
 from sqlalchemy import create_engine, exc
 from sqlalchemy.pool import QueuePool
-from datetime import datetime
-import logging
 from valuation.constants import (
-    POTENTIAL_CANDIDATES_TABLE_QUERY,
+    CURRENT_PRICES_TABLE_QUERY,
     CREATE_INDEX_QUERY,
 )
 from valuation.extraction import get_current_price
 from valuation.data_injection import Injector
-from valuation.liquidation import compute_ncavps
-from valuation.utils import currency_to_usd, compute_change_percentage, batch_tickers
+from valuation.utils import batch_tickers
 import logging
 from valuation.constants import (
     ALL_TICKERS_QUERY,
-    LAST_TICKER_FINANCIAL_STMT_QUERY,
-    TICKER_FINANCIAL_STMTS_IN_RANGE_QUERY,
 )
 
 logging.basicConfig(stream=sys.stdout, level=logging.getLevelName("INFO"))
@@ -66,7 +61,7 @@ if __name__ == "__main__":
 
     try:
         injector.execute_query(
-            POTENTIAL_CANDIDATES_TABLE_QUERY.format(table_name="current_prices"),
+            CURRENT_PRICES_TABLE_QUERY.format(table_name="current_prices"),
             connection=connection,
         )
 

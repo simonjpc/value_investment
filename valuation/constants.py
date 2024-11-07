@@ -505,3 +505,4 @@ TABLES_TO_DROP = [
     "financial_stmts",
     "prices_history",
 ]
+CURRENT_PRICES_TABLE_NAME = "current_prices"
