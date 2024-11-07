@@ -6,7 +6,7 @@ injector = Injector()
 
 
 def drop_tables():
-    engine = create_engine(db_uri.db_uri)
+    engine = create_engine(injector.db_uri)
     for table_name in TABLES_TO_DROP:
         query = f"DROP TABLE {table_name};"
         try:
