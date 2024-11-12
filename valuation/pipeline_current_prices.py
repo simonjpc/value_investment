@@ -7,6 +7,7 @@ from sqlalchemy.pool import QueuePool
 from valuation.constants import (
     CURRENT_PRICES_TABLE_QUERY,
     CREATE_INDEX_QUERY,
+    CURRENT_PRICES_TABLE_NAME,
 )
 from valuation.extraction import get_current_price
 from valuation.data_injection import Injector
@@ -61,14 +62,14 @@ if __name__ == "__main__":
 
     try:
         injector.execute_query(
-            CURRENT_PRICES_TABLE_QUERY.format(table_name="current_prices"),
+            CURRENT_PRICES_TABLE_QUERY.format(table_name=CURRENT_PRICES_TABLE_NAME),
             connection=connection,
         )
 
         injector.execute_query(
             CREATE_INDEX_QUERY.format(
                 index_name="ticker_idx",
-                table_name="current_prices",
+                table_name=CURRENT_PRICES_TABLE_NAME,
                 column_name="ticker",
             ),
             connection=connection,
@@ -83,7 +84,7 @@ if __name__ == "__main__":
                     executor.submit(
                         current_ticker_price_df,
                         ticker,
-                        "current_prices",
+                        CURRENT_PRICES_TABLE_NAME,
                     )
                     for ticker in batch
                 ]
