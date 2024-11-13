@@ -195,6 +195,16 @@ FINANCIAL_STMT_DUMP_QUERY = """
     )
 """
 
+POTENTIAL_CANDIDATES_TABLE_NAME = """
+    CREATE TABLE IF NOT EXISTS {table_name} (
+        ticker varchar,
+        current_price numeric,
+        ncavps numeric,
+        ncav_mos numeric,
+        currency varchar
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    )
+"""
 
 CREATE_INDEX_QUERY = """
     CREATE INDEX IF NOT EXISTS {index_name} ON {table_name} ({column_name})
@@ -345,11 +355,25 @@ OLDEST_AND_NEWEST_FILLING_DATES_PER_SYMBOL_QUERY = """
     GROUP BY
         symbol_bs;
 """
+GET_LAST_FINANCIAL_STMT_PER_SYMBOL_QUERY = """
+    select *
+    from financial_stmts
+    where symbol_bs = '{ticker}'
+    order by date desc
+    limit 1;
+    """
+GET_FINANCIAL_STMT_PER_SYMBOL_AND_PERIOD_QUERY = """
+    select *
+    from financial_stmts
+    where symbol_bs = '{ticker}' and
+        period_bs = '{period}'
+    """
 FINANCIAL_STMT_TABLE_NAME = "financial_stmts"
 PRICES_HISTORY_TABLE_NAME = "prices_history"
 ALL_TICKERS_TABLE_NAME = "company_tickers"
 ALL_DELISTED_TICKERS_TABLE_NAME = "delisted_company_tickers"
 BACKTESTING_TABLE_NAME = "backtesting_output"
+POTENTIAL_CANDIDATES_TABLE_NAME = "potential_candidates"
 SQLALCHEMY_DB_PATH = "postgresql://{user}:{password}@{host}:{port}/{db}"
 INCOME_STMT_COLS_TO_DROP = [
     "symbol",
@@ -364,6 +388,8 @@ INCOME_STMT_COLS_TO_DROP = [
 ]
 TICKER_IDX_NAME = "symbol_index"
 TICKER_COL_NAME = "symbol_bs"
+POTENTIAL_CANDIDATES_IDX_NAME = "ticker_index"
+POTENTIAL_CANDIDATES_TICKER_COL_NAME = "ticker"
 
 # Paths constants
 TICKERS_PATH_RECENT = "./tickers_list_03092023.txt"
