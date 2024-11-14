@@ -9,15 +9,13 @@ from valuation.data_injection import Injector
 from sqlalchemy import create_engine, exc
 from sqlalchemy.pool import QueuePool
 from valuation.constants import (
-    FINANCIAL_STMT_DUMP_QUERY,
-    CREATE_INDEX_QUERY,
-    GET_ALL_LISTED_TICKERS_QUERY,
     GET_LAST_FINANCIAL_STMT_PER_SYMBOL_QUERY,
     GET_FINANCIAL_STMT_PER_SYMBOL_AND_PERIOD_QUERY,
     RATES_TO_USD,
-    POTENTIAL_CANDIDATES_TABLE_NAME,
-    POTENTIAL_CANDIDATES_IDX_NAME,
-    POTENTIAL_CANDIDATES_TICKER_COL_NAME,
+    POTENTIAL_NCAV_CANDIDATES_IDX_NAME,
+    POTENTIAL_NCAV_CANDIDATES_TABLE_NAME,
+    POTENTIAL_NCAV_CANDIDATES_TICKER_COL_NAME,
+    POTENTIAL_NCAV_CANDIDATES_DUMP_QUERY,
 )
 from valuation.liquidation import compute_ncavps
 from valuation.utils import currency_to_usd, batch_tickers
@@ -148,14 +146,13 @@ def single_ticker_candidacy_pipeline(ticker: str):
     ncav_mos = round(100 * (ncavps - current_price) / ncavps, 2)
     if ncav_mos < 33 or ncav_mos > 95:
         return None
-
-    candidate_info = pd.concat([ticker, current_price, ncavps, ncav_mos], axis=1)
-    candidate_info = candidate_info.reset_index()
-    log.info("concatenation succeeded.")
-    log.info("dump line bound to fail...")
+    candidate_info = pd.DataFrame(
+        [[ticker, current_price, ncavps, ncav_mos, currency]],
+        columns=["ticker", "current_price", "ncavps", "ncav_mos", "currency"],
+    )
     injector.df_to_db(
         df=candidate_info,
-        table_name=POTENTIAL_CANDIDATES_TABLE_NAME,
+        table_name=POTENTIAL_NCAV_CANDIDATES_TABLE_NAME,
         conn=engine,
     )
     return True
@@ -166,25 +163,27 @@ if __name__ == "__main__":
     injector = Injector()
 
     connection = engine.connect()
-    tickers_recent = pd.read_sql(GET_ALL_LISTED_TICKERS_QUERY, connection)
-    tickers = list(set(tickers_recent["ticker"].tolist()))
-    tickers = [ticker for ticker in tickers if "." not in ticker]
+    query = """select * from financial_stmts"""
+    tickers_recent = pd.read_sql(query, connection)
+    # tickers_recent = pd.read_sql(GET_ALL_LISTED_TICKERS_QUERY, connection)
+    tickers = list(set(tickers_recent["symbol_bs"].tolist()))
+    tickers = [ticker for ticker in tickers if ticker and "." not in ticker]
     # batches creation
     ticker_batches = batch_tickers(tickers=tickers, batch_size=290)
     try:
         # create table
         injector.execute_query(
-            FINANCIAL_STMT_DUMP_QUERY.format(
-                table_name=POTENTIAL_CANDIDATES_TABLE_NAME,
+            POTENTIAL_NCAV_CANDIDATES_DUMP_QUERY.format(
+                table_name=POTENTIAL_NCAV_CANDIDATES_TABLE_NAME,
             ),
             connection,
         )
         # create index
         injector.execute_query(
-            CREATE_INDEX_QUERY.format(
-                index_name=POTENTIAL_CANDIDATES_IDX_NAME,
-                table_name=POTENTIAL_CANDIDATES_TABLE_NAME,
-                column_name=POTENTIAL_CANDIDATES_TICKER_COL_NAME,
+            POTENTIAL_NCAV_CANDIDATES_DUMP_QUERY.format(
+                index_name=POTENTIAL_NCAV_CANDIDATES_IDX_NAME,
+                table_name=POTENTIAL_NCAV_CANDIDATES_TABLE_NAME,
+                column_name=POTENTIAL_NCAV_CANDIDATES_TICKER_COL_NAME,
             ),
             connection,
         )
