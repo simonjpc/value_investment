@@ -9,22 +9,24 @@ import pandas as pd
 from sqlalchemy import create_engine, exc
 from sqlalchemy.pool import QueuePool
 
-from valuation.constants import (CREATE_INDEX_QUERY, FINANCIAL_STMT_DUMP_QUERY,
-                                 FINANCIAL_STMT_TABLE_NAME,
-                                 GET_ALL_DELISTED_TICKERS_QUERY,
-                                 GET_ALL_LISTED_TICKERS_QUERY,
-                                 INCOME_STMT_COLS_TO_DROP, TICKER_COL_NAME,
-                                 TICKER_IDX_NAME, TICKERS_PATH_ANCIENT,
-                                 TICKERS_PATH_RECENT)
+from valuation.constants import (
+    CREATE_INDEX_QUERY,
+    FINANCIAL_STMT_DUMP_QUERY,
+    FINANCIAL_STMT_TABLE_NAME,
+    GET_ALL_DELISTED_TICKERS_QUERY,
+    GET_ALL_LISTED_TICKERS_QUERY,
+    INCOME_STMT_COLS_TO_DROP,
+    TICKER_COL_NAME,
+    TICKER_IDX_NAME,
+    TICKERS_PATH_ANCIENT,
+    TICKERS_PATH_RECENT,
+)
 from valuation.data_injection import Injector
 from valuation.data_loading import DataLoader
 from valuation.extraction import get_balance_sheet_info, get_income_stmt_info
-from valuation.utils import (add_suffix_to_cols, batch_tickers, dict_to_df,
-                             drop_df_cols)
+from valuation.utils import add_suffix_to_cols, batch_tickers, dict_to_df, drop_df_cols
 
-logging.basicConfig(
-    stream=sys.stdout, level=logging.getLevelName("INFO")
-)
+logging.basicConfig(stream=sys.stdout, level=logging.getLevelName("INFO"))
 log = logging.getLogger(__name__)
 
 injector = Injector()
@@ -35,13 +37,18 @@ engine = create_engine(
     max_overflow=20,
 )
 
+
 def single_ticker_pipeline(ticker: str):
     failed_ticker = None
     income_stmt = get_income_stmt_info(
-        ticker=ticker, period="quarter", limit=120,
+        ticker=ticker,
+        period="quarter",
+        limit=120,
     )
     balance_sheet = get_balance_sheet_info(
-        ticker=ticker, period="quarter", limit=120,
+        ticker=ticker,
+        period="quarter",
+        limit=120,
     )
     log.info("balance sheet & income stmt data loaded.")
 
@@ -51,7 +58,7 @@ def single_ticker_pipeline(ticker: str):
     income_stmt_df = dict_to_df(fa_info=income_stmt)
     balance_sheet_df = dict_to_df(fa_info=balance_sheet)
     log.info("balance sheet & income stmt dicts transformed into df.")
-    
+
     try:
         income_stmt_df = income_stmt_df.set_index("date")
         balance_sheet_df = balance_sheet_df.set_index("date")
@@ -60,18 +67,17 @@ def single_ticker_pipeline(ticker: str):
     log.info("`date` col added as index.")
 
     income_stmt_df = drop_df_cols(
-        income_stmt_df, cols=INCOME_STMT_COLS_TO_DROP,
+        income_stmt_df,
+        cols=INCOME_STMT_COLS_TO_DROP,
     )
     log.info("repeated cols dropped from income statement source.")
 
-    income_stmt_df = income_stmt_df[
-        ~income_stmt_df.index.duplicated(keep="first")
-    ]
+    income_stmt_df = income_stmt_df[~income_stmt_df.index.duplicated(keep="first")]
     balance_sheet_df = balance_sheet_df[
         ~balance_sheet_df.index.duplicated(keep="first")
     ]
     log.info("rows with same index (date) dropped and only first kept.")
-    
+
     income_stmt_df = add_suffix_to_cols(df=income_stmt_df, suffix="_is")
     balance_sheet_df = add_suffix_to_cols(df=balance_sheet_df, suffix="_bs")
     log.info("balance sheet & income stmt df cols modified with suffixes.")
@@ -84,12 +90,13 @@ def single_ticker_pipeline(ticker: str):
         injector.df_dump(df=financial_info, engine=engine)
     except:
         failed_ticker = ticker
-        #print("ticker: ", ticker)
-        #raise("data dump failed")
+        # print("ticker: ", ticker)
+        # raise("data dump failed")
         log.info(f"data dump failed for {ticker}.")
     log.info(f"data dump successful for {ticker}.")
     engine.dispose()
     return True, failed_ticker
+
 
 if __name__ == "__main__":
     # create table if it does not exist
@@ -97,7 +104,7 @@ if __name__ == "__main__":
     dataloader = DataLoader()
     injector = Injector()
     log.info("dataloader & injector constructors called")
-    
+
     connection = engine.connect()
     log.info("engine defined and first connection created")
 
@@ -134,7 +141,9 @@ if __name__ == "__main__":
         # We execute this per batch considering the limit of the api
         dfc = []
         for idx, batch in enumerate(ticker_batches):
-            log.info(f"Starting batch {idx + 1}/{len(ticker_batches)} with {len(batch)} tickers...")
+            log.info(
+                f"Starting batch {idx + 1}/{len(ticker_batches)} with {len(batch)} tickers..."
+            )
 
             with concurrent.futures.ProcessPoolExecutor() as executor:
                 dumping_futures = [
