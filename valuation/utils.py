@@ -109,6 +109,8 @@ def compute_avg_value(iterator: List[float]) -> float:
             raise ValueError("all elements of `iterator` attribute must be numerical")
     except:
         raise ValueError("all elements of `iterator` attribute must be numerical")
+    if not len(iterator):
+        return 0
     return np.mean(iterator)
 
 
