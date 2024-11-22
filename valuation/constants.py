@@ -205,6 +205,16 @@ POTENTIAL_NCAV_CANDIDATES_DUMP_QUERY = """
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     )
 """
+POTENTIAL_PFV_CANDIDATES_DUMP_QUERY = """
+    CREATE TABLE IF NOT EXISTS {table_name} (
+        ticker varchar,
+        current_price numeric,
+        pfvps numeric,
+        pfv_mos numeric,
+        currency varchar,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    )
+"""
 
 CREATE_INDEX_QUERY = """
     CREATE INDEX IF NOT EXISTS {index_name} ON {table_name} ({column_name})
@@ -368,12 +378,21 @@ GET_FINANCIAL_STMT_PER_SYMBOL_AND_PERIOD_QUERY = """
     where symbol_bs = '{ticker}' and
         period_bs = '{period}'
     """
+GET_N_LAST_FINANCIAL_STMT_PER_SYMBOL_QUERY = """
+    select *
+    from financial_stmts
+    where symbol_bs = '{ticker}'
+    ORDER BY date DESC
+    LIMIT {limit};
+        
+"""
 FINANCIAL_STMT_TABLE_NAME = "financial_stmts"
 PRICES_HISTORY_TABLE_NAME = "prices_history"
 ALL_TICKERS_TABLE_NAME = "company_tickers"
 ALL_DELISTED_TICKERS_TABLE_NAME = "delisted_company_tickers"
 BACKTESTING_TABLE_NAME = "backtesting_output"
 POTENTIAL_NCAV_CANDIDATES_TABLE_NAME = "potential_ncav_candidates"
+POTENTIAL_PFV_CANDIDATES_TABLE_NAME = "potential_pfv_candidates"
 SQLALCHEMY_DB_PATH = "postgresql://{user}:{password}@{host}:{port}/{db}"
 INCOME_STMT_COLS_TO_DROP = [
     "symbol",
@@ -390,6 +409,8 @@ TICKER_IDX_NAME = "symbol_index"
 TICKER_COL_NAME = "symbol_bs"
 POTENTIAL_NCAV_CANDIDATES_IDX_NAME = "ticker_index"
 POTENTIAL_NCAV_CANDIDATES_TICKER_COL_NAME = "ticker"
+POTENTIAL_PFV_CANDIDATES_IDX_NAME = "ticker_index"
+POTENTIAL_PFV_CANDIDATES_TICKER_COL_NAME = "ticker"
 
 # Paths constants
 TICKERS_PATH_RECENT = "./tickers_list_03092023.txt"
