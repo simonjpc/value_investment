@@ -1,6 +1,3 @@
-# TODO
-# NEW CODE
-# compute preliminary ncav (current assets - total liabilities)
 import sys
 import time
 import numpy as np
@@ -26,11 +23,6 @@ import logging
 logging.basicConfig(stream=sys.stdout, level=logging.getLevelName("INFO"))
 log = logging.getLogger(__name__)
 
-# Get all tickers
-query = """
-select *
-from company_tickers
-"""
 
 injector = Injector()
 engine = create_engine(
