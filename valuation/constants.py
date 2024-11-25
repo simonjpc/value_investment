@@ -21,10 +21,11 @@ HIST_PRICES_KEY = "historical"
 PRICE_KEY = "price"
 
 # Present faire value constants
-GROWTH_RATE_CAP = 0.40
+ANNUAL_GROWTH_RATE_CAP = 0.40
+QUARTERLY_GROWTH_RATE_CAP = (1 + ANNUAL_GROWTH_RATE_CAP) ** (1 / 4) - 1
 PE_RATIO_CAP = 20
-RETURN_RATE_CAP = 0.20
-
+ANNUAL_RETURN_RATE_CAP = 0.20
+QUARTERLY_RETURN_RATE_CAP = (1 + ANNUAL_RETURN_RATE_CAP) ** (1 / 4) - 1
 # API constants
 VERSION = "v3"
 API_BASE_PATH = f"https://financialmodelingprep.com/api/{VERSION}"
