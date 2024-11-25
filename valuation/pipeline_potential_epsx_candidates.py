@@ -35,7 +35,10 @@ engine = create_engine(
 
 
 def single_ticker_candidacy_pipeline(
-    ticker: str, return_value: float = 0.2, years: int = 10
+    ticker: str,
+    return_value: float = 1.2 ** (1 / 4) - 1,
+    years: int = None,
+    quarters: int = 10,
 ):
     with engine.connect() as connection:
         df = pd.read_sql(
@@ -59,9 +62,9 @@ def single_ticker_candidacy_pipeline(
     all_equity = df["totalStockholdersEquity_bs"].tolist()
 
     growths = []
-    for nb_years in range(5, len(all_equity) + 1):  # 6, 7, 8, 9]:
+    for nb_periods in range(5, len(all_equity) + 1):  # 6, 7, 8, 9]:
         single_growth = compute_growth(
-            all_equity[0], all_equity[nb_years - 1], nb_years - 1
+            all_equity[0], all_equity[nb_periods - 1], nb_periods - 1
         )
         growths.append(single_growth)
     growth_value = np.median(growths)
@@ -93,7 +96,9 @@ def single_ticker_candidacy_pipeline(
     future_pe = compute_avg_value(historical_pe)
     if future_pe <= 0:
         return None
-    pfvps = compute_pex_value(df.iloc[0], growth_value, return_value, future_pe, years)
+    pfvps = compute_pex_value(
+        df.iloc[0], growth_value, return_value, future_pe, years, quarters
+    )
 
     current_price = get_current_price(ticker)
 
@@ -117,6 +122,7 @@ def single_ticker_candidacy_pipeline(
         table_name=POTENTIAL_PFV_CANDIDATES_TABLE_NAME,
         conn=engine,
     )
+    print(ticker)
     return True
 
 
