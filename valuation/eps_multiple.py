@@ -1,7 +1,9 @@
 from valuation.constants import (
-    GROWTH_RATE_CAP,
     PE_RATIO_CAP,
-    RETURN_RATE_CAP,
+    ANNUAL_RETURN_RATE_CAP,
+    QUARTERLY_RETURN_RATE_CAP,
+    ANNUAL_GROWTH_RATE_CAP,
+    QUARTERLY_GROWTH_RATE_CAP,
     EPS_KEY,
     TOTAL_ASSETS_KEY,
     GOODWILL_KEY,
@@ -40,34 +42,57 @@ def compute_fp(
     eps: float,
     growth_value: float,
     years: int,
+    quarters: int,
     future_pe: float,
 ) -> float:
     if eps is None:
         raise TypeError("all attributes must be numeric")
-    if not all(
-        isinstance(var, (int, float)) for var in [eps, growth_value, years, future_pe]
-    ):
+    if not all(isinstance(var, (int, float)) for var in [eps, growth_value, future_pe]):
         raise TypeError("all attributes must be numeric")
-    if years < 0 or not isinstance(years, int):  # check for integer years var
+    if years is not None and years < 0:  # check for integer years var
         raise AttributeError("`years` attribute must be a positive integer")
+    if quarters is not None and quarters < 0:  # check for integer years var
+        raise AttributeError("`quarters` attribute must be a positive integer")
     if future_pe < 0:
         raise AttributeError("`future_pe` attribute must be positive")
-    capped_growth_value = min(GROWTH_RATE_CAP, growth_value)
+    if years is not None and quarters is not None:
+        raise ValueError("only one `years` and `quarters` can be not None")
+    if years is None and quarters is None:
+        raise ValueError("one of `years` and `quarters` must be not None")
+    capped_growth_value = (
+        min(ANNUAL_GROWTH_RATE_CAP, growth_value)
+        if years is not None
+        else min(QUARTERLY_GROWTH_RATE_CAP, growth_value)
+    )
     capped_future_pe = min(PE_RATIO_CAP, future_pe)
-    return eps * ((1 + capped_growth_value) ** years) * capped_future_pe
+    if years is not None:
+        return eps * ((1 + capped_growth_value) ** years) * capped_future_pe
+    return eps * ((1 + capped_growth_value) ** quarters) * capped_future_pe
 
 
-def compute_pfv(fp: float, return_value: float, years: int) -> float:
-    if not all([isinstance(var, (int, float)) for var in [fp, return_value, years]]):
+def compute_pfv(fp: float, return_value: float, years: int, quarters: int) -> float:
+    if not all([isinstance(var, (int, float)) for var in [fp, return_value]]):
         raise TypeError("all attributes must numerical")
     if return_value < 0:
         raise ValueError(
             "though numerically possible for negative values, the `return_value` attribute must be greater than or equal to zero"
         )
-    if years <= 0:
+    if years is not None and years <= 0:
         raise ValueError("`years` attribute must be greater than zero")
-    capped_return_value = min(RETURN_RATE_CAP, return_value)
-    return fp / ((1 + capped_return_value) ** years)
+    if quarters is not None and quarters <= 0:
+        raise ValueError("`quarters` attribute must be greater than zero")
+    if years is not None and quarters is not None:
+        raise ValueError("only one `years` and `quarters` can be not None")
+    if years is None and quarters is None:
+        raise ValueError("one of `years` and `quarters` must be not None")
+    capped_return_value = (
+        min(ANNUAL_RETURN_RATE_CAP, return_value)
+        if years is not None
+        else min(QUARTERLY_RETURN_RATE_CAP, return_value)
+    )
+    if years is not None:
+        return fp / ((1 + capped_return_value) ** years)
+    return fp / ((1 + capped_return_value) ** quarters)
 
 
 def compute_pex_value_handler(
@@ -76,11 +101,12 @@ def compute_pex_value_handler(
     return_value: float,
     future_pe: float,
     years: int,
+    quarters: int,
 ) -> float:
     if not all(
         [
             isinstance(var, (int, float))
-            for var in [eps, growth_value, return_value, future_pe, years]
+            for var in [eps, growth_value, return_value, future_pe]
         ]
     ):
         raise TypeError("all attributes must be numerical")
@@ -92,11 +118,17 @@ def compute_pex_value_handler(
         raise ValueError(
             "thought numerically possible for other values, `future_pe` must be positive"
         )
-    if years <= 0:
+    if years is not None and years <= 0:
         raise ValueError("`years` attribute must be positive")
+    if quarters is not None and quarters <= 0:
+        raise ValueError("`quarters` attribute must be positive")
+    if years is not None and quarters is not None:
+        raise ValueError("only one `years` and `quarters` can be not None")
+    if years is None and quarters is None:
+        raise ValueError("one of `years` and `quarters` must be not None")
 
-    fp = compute_fp(eps, growth_value, years, future_pe)
-    pfv = compute_pfv(fp, return_value, years)
+    fp = compute_fp(eps, growth_value, years, quarters, future_pe)
+    pfv = compute_pfv(fp, return_value, years, quarters)
     return pfv
 
 
@@ -106,6 +138,7 @@ def compute_pex_value(
     return_value: float,
     future_pe: float,
     years: int,
+    quarters: int,
 ) -> float:
     if not isinstance(deco, (dict, pd.Series)):
         raise ValueError("`deco` attribute must be a dictionary")
@@ -114,14 +147,16 @@ def compute_pex_value(
     if not all(
         [
             isinstance(var, (int, float))
-            for var in [growth_value, return_value, future_pe, years]
+            for var in [growth_value, return_value, future_pe]
         ]
     ):
         raise ValueError(
             "attributes `growth_value`, `return_value`, `future_pe` and `years` must all be numeric"
         )
     eps = deco.get(EPS_KEY, 0)
-    pfv = compute_pex_value_handler(eps, growth_value, return_value, future_pe, years)
+    pfv = compute_pex_value_handler(
+        eps, growth_value, return_value, future_pe, years, quarters
+    )
     return pfv
 
 

@@ -78,10 +78,13 @@ def single_ticker_candidacy_pipeline(
             single_income_stmt
         )
 
-        prices_hist_query = f"select * from prices_history where symbol = '{ticker}'"
+        prices_hist_query = f"""select * 
+        from prices_history 
+        where symbol = '{ticker}' and
+        date >= '{reporting_start}' and
+        date <= '{reporting_end}'"""
         with engine.connect() as connection:
             prices_hist_df = pd.read_sql(prices_hist_query, connection)
-
         try:
             range_price_lows = prices_hist_df["low"].tolist()
             avg_price_at_report = compute_avg_value(range_price_lows)
