@@ -98,8 +98,8 @@ def single_ticker_pipeline(ticker: str):
     return True, failed_ticker
 
 
-if __name__ == "__main__":
-    # create table if it does not exist
+def tickers_financial_stmts_data():
+
     log.info("starting...")
     dataloader = DataLoader()
     injector = Injector()
@@ -168,3 +168,8 @@ if __name__ == "__main__":
         engine.dispose()
     print()
     print(f"Ticker with failed DB dump: {dfc}")
+
+
+if __name__ == "__main__":
+    # create table if it does not exist
+    tickers_financial_stmts_data()
