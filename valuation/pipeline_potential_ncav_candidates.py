@@ -15,7 +15,7 @@ from valuation.constants import (
     POTENTIAL_NCAV_CANDIDATES_DUMP_QUERY,
 )
 from valuation.liquidation import compute_ncavps
-from valuation.utils import currency_to_usd, batch_tickers
+from valuation.utils import currency_to_usd, batch_tickers, compute_change_percentage
 from valuation.extraction import get_current_price
 import concurrent.futures
 import logging
@@ -28,53 +28,6 @@ injector = Injector()
 engine = create_engine(
     injector.db_uri, poolclass=QueuePool, pool_size=10, max_overflow=20
 )
-
-
-def compute_change_percentage(shares_outstanding):
-    """
-    Computes the percentage change in shares outstanding considering different cases
-    of slope and intercept from linear regression.
-
-    Args:
-        shares_outstanding (pd.Series): Series of shares outstanding over time
-
-    Returns:
-        float: Percentage change in shares outstanding, or None if data is invalid
-
-    Cases handled:
-    - Positive slope, positive intercept: Simple percentage change calculation
-    - Positive slope, negative intercept: Shift values to make start positive
-    - Negative slope, negative intercept: Invalid case (negative shares)
-    - Negative slope, positive intercept: Shift values if end becomes negative
-    - Zero or near-zero denominator: Returns None to avoid division by zero
-    """
-    if len(shares_outstanding) < 2:
-        return None
-
-    x = range(1, len(shares_outstanding) + 1)
-    slope, intercept = np.polyfit(x, shares_outstanding, 1)
-
-    # Calculate start and end values
-    start = slope * x[0] + intercept
-    end = slope * x[-1] + intercept
-
-    # Different cases based on slope and intercept
-    if slope > 0:
-        if intercept > 0:
-            # Simple case: positive slope and intercept
-            return (end - start) / start
-        else:
-            # Positive slope, negative intercept: shift to make start positive
-            shift = abs(start) + 1 if start <= 0 else 0
-            return ((end + shift) - (start + shift)) / (start + shift)
-    else:
-        if intercept < 0:
-            # Negative slope and intercept: invalid case (negative shares)
-            return None
-        else:
-            # Negative slope, positive intercept: shift if end negative
-            shift = abs(end) + 1 if end <= 0 else 0
-            return ((end + shift) - (start + shift)) / (start + shift)
 
 
 def single_ticker_candidacy_pipeline(ticker: str):
@@ -150,7 +103,7 @@ def single_ticker_candidacy_pipeline(ticker: str):
     return True
 
 
-if __name__ == "__main__":
+def filter_ncav_candidates():
 
     injector = Injector()
 
@@ -207,3 +160,8 @@ if __name__ == "__main__":
         engine.dispose()
 
     log.info("all batches executed")
+
+
+if __name__ == "__main__":
+
+    filter_ncav_candidates()
