@@ -129,14 +129,12 @@ def single_ticker_candidacy_pipeline(
     return True
 
 
-if __name__ == "__main__":
-
+def filter_epsx_candidates():
     injector = Injector()
 
     connection = engine.connect()
-    query = """select * from financial_stmts"""
+    query = """select symbol_bs from financial_stmts"""
     tickers_recent = pd.read_sql(query, connection)
-    # tickers_recent = pd.read_sql(GET_ALL_LISTED_TICKERS_QUERY, connection)
     tickers = list(set(tickers_recent["symbol_bs"].tolist()))
     tickers = [ticker for ticker in tickers if ticker and "." not in ticker]
     ticker_batches = batch_tickers(tickers=tickers, batch_size=290)
@@ -183,3 +181,8 @@ if __name__ == "__main__":
         engine.dispose()
 
     log.info("all batches executed")
+
+
+if __name__ == "__main__":
+
+    filter_epsx_candidates()
