@@ -4,9 +4,16 @@ from sqlalchemy.pool import QueuePool
 
 from valuation.constants import ALL_TICKERS_DUMP_QUERY, CREATE_INDEX_QUERY
 from valuation.data_injection import Injector
-from valuation.extraction import (get_all_delisted_tickers_list,
-                                  get_all_tickers_list)
+from valuation.extraction import get_all_delisted_tickers_list, get_all_tickers_list
 from valuation.utils import list_to_single_col_df
+
+injector = Injector()
+engine = create_engine(
+    injector.db_uri,
+    poolclass=QueuePool,
+    pool_size=10,
+    max_overflow=20,
+)
 
 
 def tickers_pipeline(
@@ -28,14 +35,7 @@ def tickers_pipeline(
     )
 
 
-if __name__ == "__main__":
-    injector = Injector()
-    engine = create_engine(
-        injector.db_uri,
-        poolclass=QueuePool,
-        pool_size=10,
-        max_overflow=20,
-    )
+def tickers_data():
 
     with engine.connect() as connection:
         # public companies
@@ -94,3 +94,8 @@ if __name__ == "__main__":
         )
 
     engine.dispose()
+
+
+if __name__ == "__main__":
+
+    tickers_data()
