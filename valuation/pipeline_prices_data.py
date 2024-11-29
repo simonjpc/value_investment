@@ -26,9 +26,7 @@ from valuation.utils import (
 )
 import logging
 
-logging.basicConfig(
-    stream=sys.stdout, level=logging.getLevelName("INFO")
-)
+logging.basicConfig(stream=sys.stdout, level=logging.getLevelName("INFO"))
 log = logging.getLogger(__name__)
 
 injector = Injector()
@@ -41,13 +39,17 @@ engine = create_engine(
 
 
 def all_symbols_oldest_and_newest_dates(
-    query: str, connection: sqlalchemy.engine,
+    query: str,
+    connection: sqlalchemy.engine,
 ) -> pd.DataFrame:
     df = pd.read_sql(query, con=connection)
     return df
 
+
 def single_ticker_prices_history_pipeline(
-    ticker: str, oldest_report_date: str, newest_report_date: str,
+    ticker: str,
+    oldest_report_date: str,
+    newest_report_date: str,
 ) -> None:
     # compute offset of newest date -> this is not really necessary
     offset_date = compute_offset_date(newest_report_date)
@@ -55,7 +57,9 @@ def single_ticker_prices_history_pipeline(
     offset_date = str(offset_date)
     # get prices data
     prices_history = get_prices_in_range(
-        ticker, oldest_report_date, offset_date,
+        ticker,
+        oldest_report_date,
+        offset_date,
     )
     # preprocess prices data (formatting, new computations, etc)
     preprocessed_prices = preprocess_raw_prices(prices_history)
@@ -67,10 +71,13 @@ def single_ticker_prices_history_pipeline(
     )
     return True
 
+
 def drop_rows_with_empty_vals_in(
-    df: pd.DataFrame, cols: List[str],
+    df: pd.DataFrame,
+    cols: List[str],
 ) -> pd.DataFrame:
     return df.dropna(subset=cols)
+
 
 def preprocess_raw_prices(prices_structure: Dict[str, Any]) -> pd.DataFrame:
     prices = get_pertinent_keys(prices_structure=prices_structure)
@@ -101,7 +108,7 @@ def get_pertinent_keys(prices_structure: Dict[str, Any]) -> List[str]:
             element.get("volume", None),
             prices_structure.get("symbol", None),
         )
-        weekday = weekday_from_date(date) # cheating
+        weekday = weekday_from_date(date)  # cheating
         all_price_info.append(
             [
                 date,
@@ -116,7 +123,8 @@ def get_pertinent_keys(prices_structure: Dict[str, Any]) -> List[str]:
         )
     return all_price_info
 
-if __name__ == "__main__":
+
+def tickers_prices_data():
 
     connection = engine.connect()
     oldest_and_newest_date = all_symbols_oldest_and_newest_dates(
@@ -131,7 +139,7 @@ if __name__ == "__main__":
         pd.isna(oldest_and_newest_date["fillingdate_newest"]),
         "fillingdate_newest",
     ] = str(datetime.today().date())
-    
+
     dates_per_ticker_iter = df_to_list(oldest_and_newest_date)
     batches = batch_tickers(tickers=dates_per_ticker_iter, batch_size=90)
     # create table
@@ -152,15 +160,18 @@ if __name__ == "__main__":
             connection=connection,
         )
         for idx, batch in enumerate(batches):
-            log.info(f"Starting batch {idx + 1}/{len(batches)} with {len(batch)} tickers...")
+            log.info(
+                f"Starting batch {idx + 1}/{len(batches)} with {len(batch)} tickers..."
+            )
             with concurrent.futures.ProcessPoolExecutor() as executor:
                 dumping_futures = [
                     executor.submit(
                         single_ticker_prices_history_pipeline,
                         element[0],
                         element[1],
-                        element[2]
-                    ) for element in batch
+                        element[2],
+                    )
+                    for element in batch
                 ]
                 for future in concurrent.futures.as_completed(dumping_futures):
                     dumping_flag = future.result()
@@ -174,4 +185,8 @@ if __name__ == "__main__":
     finally:
         connection.close()
         engine.dispose()
-        
+
+
+if __name__ == "__main__":
+
+    tickers_prices_data()
