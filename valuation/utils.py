@@ -343,3 +343,11 @@ def compute_change_percentage(shares_outstanding: pd.Series) -> float:
             # Negative slope, positive intercept: shift if end negative
             shift = abs(end) + 1 if end <= 0 else 0
             return ((end + shift) - (start + shift)) / (start + shift)
+
+
+def get_current_price_from_table(column: str, engine) -> Any:
+    query = f"select {column} from current_prices"
+    with engine.connect() as connection:
+        df = pd.read_sql(query, connection)
+    print(df)
+    return df.loc[0, column]

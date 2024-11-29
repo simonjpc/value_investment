@@ -6,6 +6,7 @@ from valuation.constants import ALL_TICKERS_DUMP_QUERY, CREATE_INDEX_QUERY
 from valuation.data_injection import Injector
 from valuation.extraction import get_all_delisted_tickers_list, get_all_tickers_list
 from valuation.utils import list_to_single_col_df
+from celery_app import app
 
 injector = Injector()
 engine = create_engine(
@@ -35,7 +36,10 @@ def tickers_pipeline(
     )
 
 
-def tickers_data():
+@app.task()
+def tickers_data(
+    self,
+):
 
     with engine.connect() as connection:
         # public companies
@@ -94,6 +98,7 @@ def tickers_data():
         )
 
     engine.dispose()
+    print("all tickers extracted")
 
 
 if __name__ == "__main__":
