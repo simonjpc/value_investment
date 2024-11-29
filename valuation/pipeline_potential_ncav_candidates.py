@@ -15,10 +15,16 @@ from valuation.constants import (
     POTENTIAL_NCAV_CANDIDATES_DUMP_QUERY,
 )
 from valuation.liquidation import compute_ncavps
-from valuation.utils import currency_to_usd, batch_tickers, compute_change_percentage
+from valuation.utils import (
+    currency_to_usd,
+    batch_tickers,
+    compute_change_percentage,
+    get_current_price_from_table,
+)
 from valuation.extraction import get_current_price
 import concurrent.futures
 import logging
+from celery_app import app
 
 logging.basicConfig(stream=sys.stdout, level=logging.getLevelName("INFO"))
 log = logging.getLogger(__name__)
@@ -80,6 +86,7 @@ def single_ticker_candidacy_pipeline(ticker: str):
         return None
     # get current price
     current_price = get_current_price(ticker)
+    # current_price = get_current_price_from_table(ticker, engine)
 
     if current_price is None:
         return None
@@ -103,7 +110,10 @@ def single_ticker_candidacy_pipeline(ticker: str):
     return True
 
 
-def filter_ncav_candidates():
+@app.task()
+def filter_ncav_candidates(
+    self,
+):
 
     injector = Injector()
 

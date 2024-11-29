@@ -4,7 +4,11 @@ import numpy as np
 import pandas as pd
 from valuation.data_injection import Injector
 from valuation.extraction import get_current_price
-from valuation.utils import batch_tickers, handling_negative_vals
+from valuation.utils import (
+    batch_tickers,
+    handling_negative_vals,
+    get_current_price_from_table,
+)
 from sqlalchemy import create_engine, exc
 from sqlalchemy.pool import QueuePool
 import concurrent.futures
@@ -23,6 +27,7 @@ from valuation.eps_multiple import (
     compute_avg_value,
     compute_pex_value,
 )
+from celery_app import app
 
 logging.basicConfig(stream=sys.stdout, level=logging.getLevelName("INFO"))
 log = logging.getLogger(__name__)
@@ -104,6 +109,7 @@ def single_ticker_candidacy_pipeline(
     )
 
     current_price = get_current_price(ticker)
+    # current_price = get_current_price_from_table(ticker, engine)
 
     if current_price is None:
         return None
@@ -129,7 +135,10 @@ def single_ticker_candidacy_pipeline(
     return True
 
 
-def filter_epsx_candidates():
+@app.task()
+def filter_epsx_candidates(
+    self,
+):
     injector = Injector()
 
     connection = engine.connect()

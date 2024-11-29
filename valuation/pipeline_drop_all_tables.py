@@ -1,10 +1,12 @@
 from sqlalchemy import create_engine, text
 from valuation.data_injection import Injector
 from valuation.constants import TABLES_TO_DROP
+from celery_app import app
 
 injector = Injector()
 
 
+@app.task()
 def drop_tables():
     engine = create_engine(injector.db_uri)
     for table_name in TABLES_TO_DROP:
@@ -18,6 +20,7 @@ def drop_tables():
         continue
     connection.close()
     engine.dispose()
+    print("all tables dropped")
 
 
 if __name__ == "__main__":

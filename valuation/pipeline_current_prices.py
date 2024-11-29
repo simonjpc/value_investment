@@ -16,6 +16,7 @@ import logging
 from valuation.constants import (
     ALL_TICKERS_QUERY,
 )
+from celery_app import app
 
 logging.basicConfig(stream=sys.stdout, level=logging.getLevelName("INFO"))
 log = logging.getLogger(__name__)
@@ -47,8 +48,10 @@ def current_ticker_price_df(ticker: str, table_name: str) -> pd.DataFrame:
     return True
 
 
-if __name__ == "__main__":
-
+@app.task()
+def tickers_current_prices(
+    self,
+):
     with engine.connect() as connection:
         df = pd.read_sql(ALL_TICKERS_QUERY, connection)
 
@@ -100,3 +103,8 @@ if __name__ == "__main__":
     finally:
         connection.close()
         engine.dispose()
+
+
+if __name__ == "__main__":
+
+    tickers_current_prices()

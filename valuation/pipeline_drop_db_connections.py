@@ -1,10 +1,12 @@
 from sqlalchemy import create_engine, text
 from valuation.data_injection import Injector
 from valuation.constants import TERMINATE_ALL_CONNECTIONS_QUERY
+from celery_app import app
 
 injector = Injector()
 
 
+@app.task()
 def terminate_all_connections() -> None:
     engine = create_engine(injector.db_uri)
     with engine.connect() as connection:
