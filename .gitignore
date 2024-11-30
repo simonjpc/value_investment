@@ -119,3 +119,6 @@ fmi-personal-key*
 
 # Tickers files
 tickers_list*
+
+# frontend packages
+frontend/node-modules
