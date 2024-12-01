@@ -43,3 +43,6 @@ urllib3
 wcwidth
 xlrd
 -e .
+redis
+celery
+flask
