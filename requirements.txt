@@ -46,3 +46,4 @@ xlrd
 redis
 celery
 flask
+flask-cors
