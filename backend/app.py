@@ -21,23 +21,6 @@ engine = create_engine(
 
 
 def get_data_from_db(query):
-    # conn = psycopg2.connect(
-    #     dbname="",
-    #     user="",
-    #     password="",
-    #     host="",
-    #     port="",
-    # )
-    # cursor = conn.cursor()
-    # cursor.execute(query)
-    # rows = cursor.fetchall()
-    # columns = [desc[0] for desc in cursor.description]
-    # conn.close()
-
-    # data = {col: [] for col in columns}
-    # for row in rows:
-    #     for col, value in zip(columns, row):
-    #         data[col].append(value)
 
     with engine.connect() as conn:
         df = pd.read_sql(query, conn)
