@@ -351,3 +351,9 @@ def get_current_price_from_table(column: str, engine) -> Any:
         df = pd.read_sql(query, connection)
     print(df)
     return df.loc[0, column]
+
+
+def display_verification(element):
+    if not isinstance(element, (str, pd.Timestamp)):
+        return element if not np.isnan(element) else None
+    return element

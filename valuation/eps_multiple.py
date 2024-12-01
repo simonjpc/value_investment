@@ -156,7 +156,7 @@ def compute_pex_value(
         raise ValueError(
             "attributes `growth_value`, `return_value` and `future_pe` must all be numeric"
         )
-    eps = deco.get(EPS_KEY, 0)
+    eps = deco.get(EPS_KEY)
     pfv = compute_pex_value_handler(
         eps, growth_value, return_value, future_pe, years, quarters
     )
