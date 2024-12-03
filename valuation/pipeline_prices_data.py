@@ -24,7 +24,7 @@ from valuation.utils import (
     weekday_from_date,
     batch_tickers,
 )
-from celery_app import app
+from tasks.celery_app import app
 import logging
 
 logging.basicConfig(stream=sys.stdout, level=logging.getLevelName("INFO"))
@@ -167,7 +167,7 @@ def tickers_prices_data(
             log.info(
                 f"Starting batch {idx + 1}/{len(batches)} with {len(batch)} tickers..."
             )
-            with concurrent.futures.ProcessPoolExecutor() as executor:
+            with concurrent.futures.ThreadPoolExecutor() as executor:
                 dumping_futures = [
                     executor.submit(
                         single_ticker_prices_history_pipeline,

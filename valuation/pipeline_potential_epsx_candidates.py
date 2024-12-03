@@ -27,7 +27,7 @@ from valuation.eps_multiple import (
     compute_avg_value,
     compute_pex_value,
 )
-from celery_app import app
+from tasks.celery_app import app
 
 logging.basicConfig(stream=sys.stdout, level=logging.getLevelName("INFO"))
 log = logging.getLogger(__name__)
@@ -170,7 +170,7 @@ def filter_epsx_candidates(
                 f"Starting batch {idx + 1}/{len(ticker_batches)} with {len(batch)} tickers..."
             )
 
-            with concurrent.futures.ProcessPoolExecutor() as executor:
+            with concurrent.futures.ThreadPoolExecutor() as executor:
                 dumping_futures = [
                     executor.submit(single_ticker_candidacy_pipeline, ticker)
                     for ticker in batch

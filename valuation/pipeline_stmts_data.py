@@ -25,7 +25,7 @@ from valuation.data_injection import Injector
 from valuation.data_loading import DataLoader
 from valuation.extraction import get_balance_sheet_info, get_income_stmt_info
 from valuation.utils import add_suffix_to_cols, batch_tickers, dict_to_df, drop_df_cols
-from celery_app import app
+from tasks.celery_app import app
 
 logging.basicConfig(stream=sys.stdout, level=logging.getLevelName("INFO"))
 log = logging.getLogger(__name__)
@@ -114,9 +114,9 @@ def tickers_financial_stmts_data(
 
     # data loading
     tickers_recent = pd.read_sql(GET_ALL_LISTED_TICKERS_QUERY, connection)
-    tickers_recent = tickers_recent["ticker"].tolist()
+    tickers_recent = tickers_recent["ticker"].tolist()[:230]
     tickers_ancient = pd.read_sql(GET_ALL_DELISTED_TICKERS_QUERY, connection)
-    tickers_ancient = tickers_ancient["ticker"].tolist()
+    tickers_ancient = tickers_ancient["ticker"].tolist()[:2]
     tickers = list(set(tickers_recent + tickers_ancient))
 
     # batches creation
@@ -149,7 +149,7 @@ def tickers_financial_stmts_data(
                 f"Starting batch {idx + 1}/{len(ticker_batches)} with {len(batch)} tickers..."
             )
 
-            with concurrent.futures.ProcessPoolExecutor() as executor:
+            with concurrent.futures.ThreadPoolExecutor() as executor:
                 dumping_futures = [
                     executor.submit(single_ticker_pipeline, ticker) for ticker in batch
                 ]
