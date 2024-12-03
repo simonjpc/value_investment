@@ -47,3 +47,4 @@ redis
 celery
 flask
 flask-cors
+django-celery-beat
