@@ -15,31 +15,39 @@ import pandas as pd
 from sqlalchemy import create_engine, exc, text
 from sqlalchemy.pool import QueuePool
 
-from valuation.constants import (ALL_INFO_PER_SYMBOL_PERIOD_DATERANGE,
-                                 ALL_PER_SYMBOL_TYPE,
-                                 ALL_PRICE_HIST_PER_DATE_OFFSET_SYMBOL,
-                                 ALL_PRICE_HIST_PER_E_VAL_SYMBOL_DATE_OFFSET,
-                                 ALL_PRICE_HIST_PER_SYMBOL_DATES,
-                                 BACKTESTING_COL_NAMES,
-                                 BACKTESTING_OUTPUT_QUERY,
-                                 BACKTESTING_TABLE_NAME, CREATE_INDEX_QUERY,
-                                 CURRENT_ASSETS_FACTORS,
-                                 DATE_PERIOD_CURRENCY_PER_SYMBOL,
-                                 DATES_PERIOD_PER_DATE_SYMBOL, RATES_TO_USD)
+from valuation.constants import (
+    ALL_INFO_PER_SYMBOL_PERIOD_DATERANGE,
+    ALL_PER_SYMBOL_TYPE,
+    ALL_PRICE_HIST_PER_DATE_OFFSET_SYMBOL,
+    ALL_PRICE_HIST_PER_E_VAL_SYMBOL_DATE_OFFSET,
+    ALL_PRICE_HIST_PER_SYMBOL_DATES,
+    BACKTESTING_COL_NAMES,
+    BACKTESTING_OUTPUT_QUERY,
+    BACKTESTING_TABLE_NAME,
+    CREATE_INDEX_QUERY,
+    CURRENT_ASSETS_FACTORS,
+    DATE_PERIOD_CURRENCY_PER_SYMBOL,
+    DATES_PERIOD_PER_DATE_SYMBOL,
+    RATES_TO_USD,
+)
 from valuation.data_injection import Injector
 from valuation.liquidation import compute_liqvps, compute_ncavps
-from valuation.utils import (batch_tickers, currency_to_usd, load_df_from_db,
-                             remove_cols_suffix)
-
-logging.basicConfig(
-    stream=sys.stdout, level=logging.getLevelName("INFO")
+from valuation.utils import (
+    batch_tickers,
+    currency_to_usd,
+    load_df_from_db,
+    remove_cols_suffix,
 )
+
+logging.basicConfig(stream=sys.stdout, level=logging.getLevelName("INFO"))
 log = logging.getLogger(__name__)
 
 injector = Injector()
-engine = create_engine(injector.db_uri, poolclass=QueuePool, pool_size=10, max_overflow=20)
+engine = create_engine(
+    injector.db_uri, poolclass=QueuePool, pool_size=10, max_overflow=20
+)
 
-ticker_type = "delisted" # listed or delisted
+ticker_type = "delisted"  # listed or delisted
 
 ticker_type_hashmap = {
     "listed": "company_tickers",
@@ -50,7 +58,7 @@ ticker_type_hashmap = {
 # Table with all info
 output_df = pd.DataFrame(columns=BACKTESTING_COL_NAMES)
 
-MODIF_CONSTANT = 0.20 # 20% arbitrary return reduction
+MODIF_CONSTANT = 0.20  # 20% arbitrary return reduction
 
 # --------------------------------------------------------------------------------------------------------
 
@@ -59,19 +67,21 @@ MODIF_CONSTANT = 0.20 # 20% arbitrary return reduction
 
 def single_ticker_backtest(test_symbol):
 
-    offset_3y = None # no date for 3y offset in the beginning
-    doubled = True # doubled return flag as True by default
-    return_time_days = None #
+    offset_3y = None  # no date for 3y offset in the beginning
+    doubled = True  # doubled return flag as True by default
+    return_time_days = None  #
 
-    #query = f"""
-    #SELECT "fillingDate_bs", period_bs, "reportedCurrency_bs"
-    #FROM financial_stmts
-    #WHERE symbol_bs = '{test_symbol}'
-    #"""
-    #with engine.connect() as connection:
+    # query = f"""
+    # SELECT "fillingDate_bs", period_bs, "reportedCurrency_bs"
+    # FROM financial_stmts
+    # WHERE symbol_bs = '{test_symbol}'
+    # """
+    # with engine.connect() as connection:
     #    df = pd.read_sql(query, connection)
     with engine.connect() as connection:
-        df = load_df_from_db(DATE_PERIOD_CURRENCY_PER_SYMBOL, connection, test_symbol=test_symbol)
+        df = load_df_from_db(
+            DATE_PERIOD_CURRENCY_PER_SYMBOL, connection, test_symbol=test_symbol
+        )
 
     if len(df) == 0:
         return pd.DataFrame()
@@ -97,7 +107,7 @@ def single_ticker_backtest(test_symbol):
         # get stmts from oldest until oldest + 10 years from the same quarter
         if len(df) == 0:
             continue
-        #oldest_date, oldest_period = df.loc[0, "fillingDate_bs"], df.loc[0, "period_bs"]
+        # oldest_date, oldest_period = df.loc[0, "fillingDate_bs"], df.loc[0, "period_bs"]
 
         # ----------------------------------------------------------------
         oldest_date, oldest_period = date, periods[i]
@@ -105,23 +115,23 @@ def single_ticker_backtest(test_symbol):
             continue
         # ----------------------------------------------------------------
 
-        offset = 10*365 # 10 years
+        offset = 10 * 365  # 10 years
         offset_date = (oldest_date + pd.DateOffset(days=offset)).date()
         if offset_date > datetime.today().date():
             offset_date = datetime.today().date()
         oldest_date = oldest_date.date()
-        
-        #query = f"""
-        #select *
-        #from financial_stmts
-        #where symbol_bs = '{test_symbol}' and
+
+        # query = f"""
+        # select *
+        # from financial_stmts
+        # where symbol_bs = '{test_symbol}' and
         #    period_bs = '{oldest_period}' and
         #    "fillingDate_bs" >= '{oldest_date}' and
         #    "fillingDate_bs" <= '{offset_date}'
-        #"""
+        # """
 
         with engine.connect() as connection:
-            #same_period_hist_df = pd.read_sql(query, connection)
+            # same_period_hist_df = pd.read_sql(query, connection)
             same_period_hist_df = load_df_from_db(
                 ALL_INFO_PER_SYMBOL_PERIOD_DATERANGE,
                 connection,
@@ -130,28 +140,28 @@ def single_ticker_backtest(test_symbol):
                 oldest_date=oldest_date,
                 offset_date=offset_date,
             )
-        
+
         # this could have no output if the filling period is not the same throughtout the 10 years
         same_period_hist_df = same_period_hist_df.sort_values("date")
 
         # Compute valuation with info from fillingDate_bs of oldest + 10 years
         # (most recent row of `same_period_hist_df`)
-        
-        #cols = list(same_period_hist_df.columns)
-        #cols = [col.split("_")[0] for col in cols]
-        #same_period_hist_df.columns = cols
-        
+
+        # cols = list(same_period_hist_df.columns)
+        # cols = [col.split("_")[0] for col in cols]
+        # same_period_hist_df.columns = cols
+
         same_period_hist_df = remove_cols_suffix(same_period_hist_df)
-        
+
         offset_date_financials = same_period_hist_df[
-            same_period_hist_df["fillingDate"] == max(same_period_hist_df["fillingDate"])
+            same_period_hist_df["fillingDate"]
+            == max(same_period_hist_df["fillingDate"])
         ]
-        #print(test_symbol)
-        #print()
+        # print(test_symbol)
+        # print()
         ncavps = compute_ncavps(offset_date_financials.to_dict("records")[0])
         liqvps = compute_liqvps(
-            offset_date_financials.to_dict("records")[0],
-            factors=CURRENT_ASSETS_FACTORS
+            offset_date_financials.to_dict("records")[0], factors=CURRENT_ASSETS_FACTORS
         )
 
         ncavps = currency_to_usd(ncavps, currency, RATES_TO_USD)
@@ -172,7 +182,7 @@ def single_ticker_backtest(test_symbol):
         # """
         # with engine.connect() as connection:
         #     df = pd.read_sql(query, connection)
-        
+
         with engine.connect() as connection:
             df = load_df_from_db(
                 DATES_PERIOD_PER_DATE_SYMBOL,
@@ -183,7 +193,7 @@ def single_ticker_backtest(test_symbol):
 
         if len(df) == 0:
             continue
-            
+
         ########### -----------
         ########### STOPPED HERE
         ########### -----------
@@ -192,12 +202,12 @@ def single_ticker_backtest(test_symbol):
         plateau_date = (next_filling_date - pd.DateOffset(days=1)).date()
         next_filling_date, plateau_date
 
-        #query = f"""
-        #select *
-        #from prices_history
-        #where symbol = '{test_symbol}' and date >= '{least_oldest_date}' and date <= '{plateau_date}'
-        #"""
-        #with engine.connect() as connection:
+        # query = f"""
+        # select *
+        # from prices_history
+        # where symbol = '{test_symbol}' and date >= '{least_oldest_date}' and date <= '{plateau_date}'
+        # """
+        # with engine.connect() as connection:
         #    prices_df = pd.read_sql(query, connection)
 
         with engine.connect() as connection:
@@ -211,21 +221,29 @@ def single_ticker_backtest(test_symbol):
 
         if len(prices_df) == 0:
             continue
-        
-        fct = 1 # should be more like 0.5 when implemented in the script
+
+        fct = 1  # should be more like 0.5 when implemented in the script
         prices_df[prices_df["low"] < ncavps * fct]
 
         # Compute slope in percentage values of shares outstanding during the last 10 years (same quarter)
         same_period_hist_df = same_period_hist_df[::-1]
-        y = same_period_hist_df.loc[~pd.isna(same_period_hist_df["weightedAverageShsOutDil"]), "weightedAverageShsOutDil"]
+        y = same_period_hist_df.loc[
+            ~pd.isna(same_period_hist_df["weightedAverageShsOutDil"]),
+            "weightedAverageShsOutDil",
+        ]
         x = range(len(y))
         if len(y) < 2:
             continue
         slope, y_intercept = np.polyfit(
-            x, y, 1,
+            x,
+            y,
+            1,
         )
-        #y_5y = same_period_hist_df.tail(5).loc[~pd.isna(same_period_hist_df.tail(5)["weightedAverageShsOutDil"]), "weightedAverageShsOutDil"]
-        y_5y = same_period_hist_df.head(5).loc[~pd.isna(same_period_hist_df.head(5)["weightedAverageShsOutDil"]), "weightedAverageShsOutDil"]
+        # y_5y = same_period_hist_df.tail(5).loc[~pd.isna(same_period_hist_df.tail(5)["weightedAverageShsOutDil"]), "weightedAverageShsOutDil"]
+        y_5y = same_period_hist_df.head(5).loc[
+            ~pd.isna(same_period_hist_df.head(5)["weightedAverageShsOutDil"]),
+            "weightedAverageShsOutDil",
+        ]
 
         x_5y = range(len(y_5y))
         if len(y_5y) < 2:
@@ -236,12 +254,14 @@ def single_ticker_backtest(test_symbol):
             1,
         )
         start, end = (slope * x + y_intercept)[0], (slope * x + y_intercept)[-1]
-        start_5y, end_5y = (slope_5y * x_5y + y_intercept_5y)[0], (slope_5y * x_5y + y_intercept_5y)[-1]
+        start_5y, end_5y = (slope_5y * x_5y + y_intercept_5y)[0], (
+            slope_5y * x_5y + y_intercept_5y
+        )[-1]
 
         slope_percentage = (end - start) / start
-        #slope_percentage = (y.iloc[0] - y.iloc[-1]) / y.iloc[-1]
+        # slope_percentage = (y.iloc[0] - y.iloc[-1]) / y.iloc[-1]
         slope_percentage_5y = (end_5y - start_5y) / start_5y
-        #slope_percentage_5y = (y_5y.iloc[0] - y_5y.iloc[-1]) / y_5y.iloc[-1]
+        # slope_percentage_5y = (y_5y.iloc[0] - y_5y.iloc[-1]) / y_5y.iloc[-1]
 
         """print(f"slope_percentage for {test_symbol}")
         print(slope_percentage)
@@ -259,24 +279,23 @@ def single_ticker_backtest(test_symbol):
         # Check if price in the future goes up after buying time
         oldest_lowest_date, oldest_lowest_price = (
             prices_df.loc[prices_df["low"] == min(prices_df["low"]), "date"].iloc[-1],
-            prices_df.loc[prices_df["low"] == min(prices_df["low"]), "low"].iloc[-1]
+            prices_df.loc[prices_df["low"] == min(prices_df["low"]), "low"].iloc[-1],
         )
-        offset_3y = (oldest_lowest_date + pd.DateOffset(days=3*365)).date()
+        offset_3y = (oldest_lowest_date + pd.DateOffset(days=3 * 365)).date()
 
         # if lowest price above ncav, it's overpriced
         if oldest_lowest_price > ncavps:
             continue
 
-        #query = f"""
-        #select *
-        #from prices_history
-        #where date >= '{oldest_lowest_date}' and date <= '{offset_3y}' and symbol = '{test_symbol}'
-        #"""
+        # query = f"""
+        # select *
+        # from prices_history
+        # where date >= '{oldest_lowest_date}' and date <= '{offset_3y}' and symbol = '{test_symbol}'
+        # """
         #
-        #with engine.connect() as connection:
+        # with engine.connect() as connection:
         #    maybe_up_df = pd.read_sql(query, connection)
 
-        
         with engine.connect() as connection:
             maybe_up_df = load_df_from_db(
                 ALL_PRICE_HIST_PER_DATE_OFFSET_SYMBOL,
@@ -285,10 +304,14 @@ def single_ticker_backtest(test_symbol):
                 offset_3y=offset_3y,
                 test_symbol=test_symbol,
             )
-        
+
         highest_date, highest_price = (
-            maybe_up_df.loc[maybe_up_df["high"] == max(maybe_up_df["high"]), "date"].iloc[0],
-            maybe_up_df.loc[maybe_up_df["high"] == max(maybe_up_df["high"]), "high"].iloc[0],
+            maybe_up_df.loc[
+                maybe_up_df["high"] == max(maybe_up_df["high"]), "date"
+            ].iloc[0],
+            maybe_up_df.loc[
+                maybe_up_df["high"] == max(maybe_up_df["high"]), "high"
+            ].iloc[0],
         )
 
         # Percentage of return
@@ -338,20 +361,82 @@ def single_ticker_backtest(test_symbol):
             data=[
                 [
                     test_symbol,
-                    oldest_date,#df.loc[0, "fillingDate_bs"]
+                    oldest_date,  # df.loc[0, "fillingDate_bs"]
                     offset_date_financials.loc[0, "fillingDate"],
-                    oldest_period,#df.loc[0, "period_bs"]
+                    oldest_period,  # df.loc[0, "period_bs"]
                     offset_date_financials.loc[0, "period"],
-                    same_period_hist_df.reset_index().loc[0, "weightedAverageShsOutDil"] if same_period_hist_df.reset_index().loc[0, "weightedAverageShsOutDil"] else None,
-                    same_period_hist_df.reset_index().loc[1, "weightedAverageShsOutDil"] if len(same_period_hist_df) >= 2 else None,
-                    same_period_hist_df.reset_index().loc[2, "weightedAverageShsOutDil"] if len(same_period_hist_df) >= 3 else None,
-                    same_period_hist_df.reset_index().loc[3, "weightedAverageShsOutDil"] if len(same_period_hist_df) >= 4 else None,
-                    same_period_hist_df.reset_index().loc[4, "weightedAverageShsOutDil"] if len(same_period_hist_df) >= 5 else None,
-                    same_period_hist_df.reset_index().loc[5, "weightedAverageShsOutDil"] if len(same_period_hist_df) >= 6 else None,
-                    same_period_hist_df.reset_index().loc[6, "weightedAverageShsOutDil"] if len(same_period_hist_df) >= 7 else None,
-                    same_period_hist_df.reset_index().loc[7, "weightedAverageShsOutDil"] if len(same_period_hist_df) >= 8 else None,
-                    same_period_hist_df.reset_index().loc[8, "weightedAverageShsOutDil"] if len(same_period_hist_df) >= 9 else None,
-                    same_period_hist_df.reset_index().loc[9, "weightedAverageShsOutDil"] if len(same_period_hist_df) >= 10 else None,
+                    (
+                        same_period_hist_df.reset_index().loc[
+                            0, "weightedAverageShsOutDil"
+                        ]
+                        if same_period_hist_df.reset_index().loc[
+                            0, "weightedAverageShsOutDil"
+                        ]
+                        else None
+                    ),
+                    (
+                        same_period_hist_df.reset_index().loc[
+                            1, "weightedAverageShsOutDil"
+                        ]
+                        if len(same_period_hist_df) >= 2
+                        else None
+                    ),
+                    (
+                        same_period_hist_df.reset_index().loc[
+                            2, "weightedAverageShsOutDil"
+                        ]
+                        if len(same_period_hist_df) >= 3
+                        else None
+                    ),
+                    (
+                        same_period_hist_df.reset_index().loc[
+                            3, "weightedAverageShsOutDil"
+                        ]
+                        if len(same_period_hist_df) >= 4
+                        else None
+                    ),
+                    (
+                        same_period_hist_df.reset_index().loc[
+                            4, "weightedAverageShsOutDil"
+                        ]
+                        if len(same_period_hist_df) >= 5
+                        else None
+                    ),
+                    (
+                        same_period_hist_df.reset_index().loc[
+                            5, "weightedAverageShsOutDil"
+                        ]
+                        if len(same_period_hist_df) >= 6
+                        else None
+                    ),
+                    (
+                        same_period_hist_df.reset_index().loc[
+                            6, "weightedAverageShsOutDil"
+                        ]
+                        if len(same_period_hist_df) >= 7
+                        else None
+                    ),
+                    (
+                        same_period_hist_df.reset_index().loc[
+                            7, "weightedAverageShsOutDil"
+                        ]
+                        if len(same_period_hist_df) >= 8
+                        else None
+                    ),
+                    (
+                        same_period_hist_df.reset_index().loc[
+                            8, "weightedAverageShsOutDil"
+                        ]
+                        if len(same_period_hist_df) >= 9
+                        else None
+                    ),
+                    (
+                        same_period_hist_df.reset_index().loc[
+                            9, "weightedAverageShsOutDil"
+                        ]
+                        if len(same_period_hist_df) >= 10
+                        else None
+                    ),
                     round(slope_percentage * 100, 2),
                     round(slope_percentage_5y * 100, 2),
                     oldest_lowest_date,
@@ -362,22 +447,41 @@ def single_ticker_backtest(test_symbol):
                     liqvps,
                     round(100 * (ncavps - oldest_lowest_price) / ncavps, 2),
                     round(100 * (liqvps - oldest_lowest_price) / liqvps, 2),
-                    return_time_years, #round(return_time_days / 365, 2),
+                    return_time_years,  # round(return_time_days / 365, 2),
                     oldest_lowest_price * 2,
-                    doubled_return_date, #doubled_return_df.loc[0, "date"] if len(doubled_return_df) > 0 else None,
-                    doubled_return_years, #round(doubled_return_days / 365, 2) if doubled_return_days is not None else None,
+                    doubled_return_date,  # doubled_return_df.loc[0, "date"] if len(doubled_return_df) > 0 else None,
+                    doubled_return_years,  # round(doubled_return_days / 365, 2) if doubled_return_days is not None else None,
                     round(return_percentage * 100, 2),
                     oldest_lowest_price * (1 + MODIF_CONSTANT),
                     highest_price * (1 - MODIF_CONSTANT),
-                    round(100 * (ncavps - oldest_lowest_price * (1 + MODIF_CONSTANT)) / ncavps, 2),
-                    round(100 * (liqvps - oldest_lowest_price * (1 + MODIF_CONSTANT)) / liqvps, 2),
+                    round(
+                        100
+                        * (ncavps - oldest_lowest_price * (1 + MODIF_CONSTANT))
+                        / ncavps,
+                        2,
+                    ),
+                    round(
+                        100
+                        * (liqvps - oldest_lowest_price * (1 + MODIF_CONSTANT))
+                        / liqvps,
+                        2,
+                    ),
                     oldest_lowest_price * (1 + MODIF_CONSTANT),
-                    round((highest_price * (1 - MODIF_CONSTANT) - oldest_lowest_price * (1 + MODIF_CONSTANT)) * 100 / oldest_lowest_price * (1 + MODIF_CONSTANT), 2),
+                    round(
+                        (
+                            highest_price * (1 - MODIF_CONSTANT)
+                            - oldest_lowest_price * (1 + MODIF_CONSTANT)
+                        )
+                        * 100
+                        / oldest_lowest_price
+                        * (1 + MODIF_CONSTANT),
+                        2,
+                    ),
                     ticker_type,
                 ]
             ],
-            columns=BACKTESTING_COL_NAMES
-            #columns=[
+            columns=BACKTESTING_COL_NAMES,
+            # columns=[
             #    "ticker",
             #    "ref_report_date",
             #    "report_date",
@@ -415,20 +519,21 @@ def single_ticker_backtest(test_symbol):
             #    "doubling_price_modif",
             #    "highest_return_modif",
             #    "ticker_type",
-            #]
+            # ]
         )
 
         single_ticker_df = pd.concat([single_ticker_df, tmp_df], axis=0)
     return single_ticker_df
 
+
 if __name__ == "__main__":
 
-    #query = f"""
-    #select *
-    #from {ticker_type_hashmap[ticker_type]}
-    #"""
+    # query = f"""
+    # select *
+    # from {ticker_type_hashmap[ticker_type]}
+    # """
     #
-    #with engine.connect() as connection:
+    # with engine.connect() as connection:
     #    tickers_df = pd.read_sql(query, connection)
 
     with engine.connect() as connection:
@@ -480,16 +585,19 @@ if __name__ == "__main__":
             ),
             connection=connection,
         )"""
-        #connection.close()
+        # connection.close()
         for idx, batch in enumerate(batches):
-            log.info(f"Starting batch {idx + 1}/{len(batches)} with {len(batch)} tickers...")
+            log.info(
+                f"Starting batch {idx + 1}/{len(batches)} with {len(batch)} tickers..."
+            )
             batch_df = pd.DataFrame()
-            with concurrent.futures.ProcessPoolExecutor() as executor:
+            with concurrent.futures.ThreadPoolExecutor() as executor:
                 dumping_futures = [
                     executor.submit(
                         single_ticker_backtest,
                         ticker,
-                    ) for ticker in batch
+                    )
+                    for ticker in batch
                 ]
                 for future in concurrent.futures.as_completed(dumping_futures):
                     single_ticker_df = future.result()
@@ -500,14 +608,14 @@ if __name__ == "__main__":
 
         output_df = output_df.reset_index(drop=True)
 
-        #with engine.connect() as connection:
+        # with engine.connect() as connection:
         """injector.df_to_db(
             df=output_df,
             table_name=BACKTESTING_TABLE_NAME,
             conn=connection,
         )"""
 
-        #engine.dispose()
+        # engine.dispose()
 
     except exc.SQLAlchemyError as e:
         print(f"An error occurred: {e}")
@@ -515,5 +623,5 @@ if __name__ == "__main__":
     finally:
         connection.close()
         engine.dispose()
-        
+
     log.info("all batches successfully executed.")

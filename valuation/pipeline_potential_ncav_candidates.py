@@ -24,7 +24,7 @@ from valuation.utils import (
 from valuation.extraction import get_current_price
 import concurrent.futures
 import logging
-from celery_app import app
+from tasks.celery_app import app
 
 logging.basicConfig(stream=sys.stdout, level=logging.getLevelName("INFO"))
 log = logging.getLogger(__name__)
@@ -118,7 +118,7 @@ def filter_ncav_candidates(
     injector = Injector()
 
     connection = engine.connect()
-    query = """select * from financial_stmts"""
+    query = """select distinct symbol_bs from financial_stmts"""
     tickers_recent = pd.read_sql(query, connection)
     # tickers_recent = pd.read_sql(GET_ALL_LISTED_TICKERS_QUERY, connection)
     tickers = list(set(tickers_recent["symbol_bs"].tolist()))
@@ -150,7 +150,7 @@ def filter_ncav_candidates(
                 f"Starting batch {idx + 1}/{len(ticker_batches)} with {len(batch)} tickers..."
             )
 
-            with concurrent.futures.ProcessPoolExecutor() as executor:
+            with concurrent.futures.ThreadPoolExecutor() as executor:
                 dumping_futures = [
                     executor.submit(single_ticker_candidacy_pipeline, ticker)
                     for ticker in batch

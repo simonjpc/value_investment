@@ -1,7 +1,7 @@
 from sqlalchemy import create_engine, text
 from valuation.data_injection import Injector
 from valuation.constants import TABLES_TO_DROP
-from celery_app import app
+from tasks.celery_app import app
 
 injector = Injector()
 

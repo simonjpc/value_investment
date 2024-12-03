@@ -15,8 +15,9 @@ from valuation.utils import batch_tickers
 import logging
 from valuation.constants import (
     ALL_TICKERS_QUERY,
+    TICKERS_FROM_FINANCIAL_STMTS_QUERY,
 )
-from celery_app import app
+from tasks.celery_app import app
 
 logging.basicConfig(stream=sys.stdout, level=logging.getLevelName("INFO"))
 log = logging.getLogger(__name__)
@@ -53,11 +54,12 @@ def tickers_current_prices(
     self,
 ):
     with engine.connect() as connection:
-        df = pd.read_sql(ALL_TICKERS_QUERY, connection)
+        df = pd.read_sql(TICKERS_FROM_FINANCIAL_STMTS_QUERY, connection)
 
     connection = engine.connect()
     logging.info("all tickers fetched")
-    all_tickers = df["ticker"].tolist()
+    all_tickers = df["symbol_bs"].tolist()
+    all_tickers = [ticker for ticker in all_tickers if ticker is not None]
     logging.info("tickers list created")
 
     batches = batch_tickers(tickers=all_tickers, batch_size=300)
@@ -82,7 +84,7 @@ def tickers_current_prices(
             log.info(
                 f"Starting batch {idx + 1}/{len(batches)} with {len(batch)} tickers..."
             )
-            with concurrent.futures.ProcessPoolExecutor() as executor:
+            with concurrent.futures.ThreadPoolExecutor() as executor:
                 dumping_futures = [
                     executor.submit(
                         current_ticker_price_df,
