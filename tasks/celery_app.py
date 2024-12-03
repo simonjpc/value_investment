@@ -1,4 +1,5 @@
 from celery import Celery
+from celery.schedules import crontab
 
 # Configure Celery to use Redis as the broker and result backend
 app = Celery(
@@ -22,3 +23,18 @@ app.conf.update(
     # result_expires=3600,  # Results will expire after an hour
     broker_connection_retry_on_startup=True,
 )
+
+app.conf.beat_schedule = {
+    # Schedule the workflow to run once a month
+    "monthly_workflow": {
+        "task": "tasks.run_tasks.run_workflow",
+        "schedule": crontab(
+            day_of_month=1, hour=0, minute=0
+        ),  # Runs on the 1st of every month at midnight
+    },
+    # Schedule the daily task
+    "daily_tickers_prices": {
+        "task": "tasks.run_tasks.tickers_current_prices_wrapper",
+        "schedule": crontab(hour=0, minute=0),  # Runs every day at midnight
+    },
+}
