@@ -1,5 +1,6 @@
 from celery import Celery
 from celery.schedules import crontab
+from datetime import datetime, timedelta
 
 # Configure Celery to use Redis as the broker and result backend
 app = Celery(
@@ -7,14 +8,7 @@ app = Celery(
     broker="redis://localhost:6379/0",  # Replace with your Redis URL if needed
     backend="redis://localhost:6379/0",
     include=[
-        "valuation.pipeline_current_prices",
-        "valuation.pipeline_drop_all_tables",
-        "valuation.pipeline_prices_data",
-        "valuation.pipeline_stmts_data",
-        "valuation.pipeline_tickers",
-        "valuation.pipeline_drop_db_connections",
-        "valuation.pipeline_potential_epsx_candidates",
-        "valuation.pipeline_potential_ncav_candidates",
+        "tasks.run_tasks",
     ],  # Add this line
 )
 
@@ -24,17 +18,24 @@ app.conf.update(
     broker_connection_retry_on_startup=True,
 )
 
+monthly_workflow_start_time = datetime.now() + timedelta(seconds=5)
+daily_workflow_start_time = datetime.now() + timedelta(seconds=12)
+
 app.conf.beat_schedule = {
     # Schedule the workflow to run once a month
     "monthly_workflow": {
         "task": "tasks.run_tasks.run_workflow",
         "schedule": crontab(
-            day_of_month=1, hour=0, minute=0
+            # day_of_month=1, hour=0, minute=0
+            minute="*/17"
         ),  # Runs on the 1st of every month at midnight
+        "options": {"start_time": monthly_workflow_start_time},
     },
     # Schedule the daily task
     "daily_tickers_prices": {
         "task": "tasks.run_tasks.tickers_current_prices_wrapper",
-        "schedule": crontab(hour=0, minute=0),  # Runs every day at midnight
+        # "schedule": crontab(hour=0, minute=0),  # Runs every day at midnight
+        "schedule": crontab(minute="*/3"),
+        "options": {"start_time": daily_workflow_start_time},
     },
 }
