@@ -24,7 +24,7 @@ from valuation.utils import (
     weekday_from_date,
     batch_tickers,
 )
-from tasks.celery_app import app
+from celery_app import app
 import logging
 
 logging.basicConfig(stream=sys.stdout, level=logging.getLevelName("INFO"))
@@ -125,10 +125,8 @@ def get_pertinent_keys(prices_structure: Dict[str, Any]) -> List[str]:
     return all_price_info
 
 
-@app.task()
-def tickers_prices_data(
-    self,
-):
+# @app.task()
+def tickers_prices_data():
 
     connection = engine.connect()
     oldest_and_newest_date = all_symbols_oldest_and_newest_dates(

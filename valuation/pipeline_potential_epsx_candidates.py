@@ -27,7 +27,7 @@ from valuation.eps_multiple import (
     compute_avg_value,
     compute_pex_value,
 )
-from tasks.celery_app import app
+from celery_app import app
 
 logging.basicConfig(stream=sys.stdout, level=logging.getLevelName("INFO"))
 log = logging.getLogger(__name__)
@@ -135,14 +135,12 @@ def single_ticker_candidacy_pipeline(
     return True
 
 
-@app.task()
-def filter_epsx_candidates(
-    self,
-):
+# @app.task()
+def filter_epsx_candidates():
     injector = Injector()
 
     connection = engine.connect()
-    query = """select symbol_bs from financial_stmts"""
+    query = """select distinct symbol_bs from financial_stmts"""
     tickers_recent = pd.read_sql(query, connection)
     tickers = list(set(tickers_recent["symbol_bs"].tolist()))
     tickers = [ticker for ticker in tickers if ticker and "." not in ticker]

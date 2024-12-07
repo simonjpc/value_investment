@@ -1,12 +1,12 @@
 from sqlalchemy import create_engine, text
 from valuation.data_injection import Injector
 from valuation.constants import TABLES_TO_DROP
-from tasks.celery_app import app
+from celery_app import app
 
 injector = Injector()
 
 
-@app.task()
+# @app.task()
 def drop_tables():
     engine = create_engine(injector.db_uri)
     for table_name in TABLES_TO_DROP:
