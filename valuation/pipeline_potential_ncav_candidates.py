@@ -24,7 +24,7 @@ from valuation.utils import (
 from valuation.extraction import get_current_price
 import concurrent.futures
 import logging
-from tasks.celery_app import app
+from celery_app import app
 
 logging.basicConfig(stream=sys.stdout, level=logging.getLevelName("INFO"))
 log = logging.getLogger(__name__)
@@ -110,10 +110,8 @@ def single_ticker_candidacy_pipeline(ticker: str):
     return True
 
 
-@app.task()
-def filter_ncav_candidates(
-    self,
-):
+# @app.task()
+def filter_ncav_candidates():
 
     injector = Injector()
 

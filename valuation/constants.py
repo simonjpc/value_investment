@@ -288,6 +288,11 @@ ALL_TICKERS_QUERY = """
     FROM company_tickers
 """
 
+TICKERS_FROM_FINANCIAL_STMTS_QUERY = """
+    SELECT DISTINCT symbol_bs
+    FROM financial_stmts
+"""
+
 LAST_TICKER_FINANCIAL_STMT_QUERY = """
     SELECT *
     FROM financial_stmts

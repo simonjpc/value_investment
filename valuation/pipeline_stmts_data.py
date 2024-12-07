@@ -25,7 +25,7 @@ from valuation.data_injection import Injector
 from valuation.data_loading import DataLoader
 from valuation.extraction import get_balance_sheet_info, get_income_stmt_info
 from valuation.utils import add_suffix_to_cols, batch_tickers, dict_to_df, drop_df_cols
-from tasks.celery_app import app
+from celery_app import app
 
 logging.basicConfig(stream=sys.stdout, level=logging.getLevelName("INFO"))
 log = logging.getLogger(__name__)
@@ -99,10 +99,8 @@ def single_ticker_pipeline(ticker: str):
     return True, failed_ticker
 
 
-@app.task()
-def tickers_financial_stmts_data(
-    self,
-):
+# @app.task()
+def tickers_financial_stmts_data():
 
     log.info("starting...")
     dataloader = DataLoader()
@@ -114,7 +112,7 @@ def tickers_financial_stmts_data(
 
     # data loading
     tickers_recent = pd.read_sql(GET_ALL_LISTED_TICKERS_QUERY, connection)
-    tickers_recent = tickers_recent["ticker"].tolist()[:230]
+    tickers_recent = tickers_recent["ticker"].tolist()[:250]
     tickers_ancient = pd.read_sql(GET_ALL_DELISTED_TICKERS_QUERY, connection)
     tickers_ancient = tickers_ancient["ticker"].tolist()[:2]
     tickers = list(set(tickers_recent + tickers_ancient))
