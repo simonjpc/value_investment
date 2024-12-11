@@ -112,9 +112,9 @@ def tickers_financial_stmts_data():
 
     # data loading
     tickers_recent = pd.read_sql(GET_ALL_LISTED_TICKERS_QUERY, connection)
-    tickers_recent = tickers_recent["ticker"].tolist()[:250]
+    tickers_recent = tickers_recent["ticker"].tolist()
     tickers_ancient = pd.read_sql(GET_ALL_DELISTED_TICKERS_QUERY, connection)
-    tickers_ancient = tickers_ancient["ticker"].tolist()[:2]
+    tickers_ancient = tickers_ancient["ticker"].tolist()
     tickers = list(set(tickers_recent + tickers_ancient))
 
     # batches creation
