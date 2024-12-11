@@ -553,9 +553,12 @@ TERMINATE_ALL_CONNECTIONS_QUERY = """
     WHERE pid <> pg_backend_pid()
     """
 TABLES_TO_DROP = [
-    "company_tickers",
-    "delisted_company_tickers",
     "financial_stmts",
     "prices_history",
+    "company_tickers",
+    "current_prices",
+    "delisted_company_tickers",
+    "potential_ncav_candidates",
+    "potential_pfv_candidates",
 ]
 CURRENT_PRICES_TABLE_NAME = "current_prices"
