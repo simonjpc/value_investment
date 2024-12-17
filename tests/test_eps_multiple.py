@@ -25,10 +25,11 @@ from valuation.constants import (
     EXPECTED_OBLIGATIONS,
     TOTAL_LIAB_KEY,
     STOCKHOLDERS_EQUITY_KEY,
-    DATE_KEY,    
+    DATE_KEY,
 )
 
 TOLERANCE = 1e-3
+
 
 @pytest.mark.parametrize(
     "eps, growth_value, years, future_pe, fp",
@@ -38,14 +39,13 @@ TOLERANCE = 1e-3
         (1, 0.20, -1, 9, "`years` attribute must be a positive integer"),
         (1, 0.20, -1, -1, "`years` attribute must be a positive integer"),
         (1, 0.20, 1, -1, "`future_pe` attribute must be positive"),
-    ]
+    ],
 )
 def test_compute_fp_crash(eps, growth_value, years, future_pe, fp):
     with pytest.raises((TypeError, AttributeError)) as e:
-        _ = compute_fp(
-            eps, growth_value, years, future_pe
-        )
+        _ = compute_fp(eps, growth_value, years, future_pe)
     assert str(e.value) == fp
+
 
 @pytest.mark.usefixtures("fp_variables")
 def test_compute_fp(fp_variables):
@@ -55,9 +55,8 @@ def test_compute_fp(fp_variables):
         fp_variables.get("years"),
         fp_variables.get("future_pe"),
     )
-    assert np.isclose(
-        future_value, fp_variables.get("fp"), atol=TOLERANCE
-        )
+    assert np.isclose(future_value, fp_variables.get("fp"), atol=TOLERANCE)
+
 
 @pytest.mark.parametrize(
     "fp, return_value, years, pfv",
@@ -65,14 +64,20 @@ def test_compute_fp(fp_variables):
         (None, 0.20, 2, "all attributes must numerical"),
         (10, "", 2, "all attributes must numerical"),
         (10, 0.20, [], "all attributes must numerical"),
-        (10, -0.7, 6, "though numerically possible for negative values, the `return_value` attribute must be greater than or equal to zero"),
+        (
+            10,
+            -0.7,
+            6,
+            "though numerically possible for negative values, the `return_value` attribute must be greater than or equal to zero",
+        ),
         (10, 0.2, 0, "`years` attribute must be greater than zero"),
-    ]
+    ],
 )
 def test_compute_pfv_crash(fp, return_value, years, pfv):
     with pytest.raises((TypeError, ValueError)) as e:
         _ = compute_pfv(fp, return_value, years)
     assert str(e.value) == pfv
+
 
 @pytest.mark.usefixtures("pfv_variables")
 def test_compute_pfv(pfv_variables):
@@ -82,11 +87,12 @@ def test_compute_pfv(pfv_variables):
     pfv = pfv_variables.get("pfv")
     computed_pfv = compute_pfv(fp, return_value, years)
     assert np.isclose(computed_pfv, pfv, atol=TOLERANCE)
-    
+
     return_value = 1000
     pfv = 1.075
     computed_pfv = compute_pfv(fp, return_value, years)
     assert np.isclose(computed_pfv, pfv, atol=TOLERANCE)
+
 
 @pytest.mark.parametrize(
     "eps, growth_value, return_value, future_pe, years, pfv",
@@ -94,16 +100,40 @@ def test_compute_pfv(pfv_variables):
         (None, 1, 1, 1, 1, "all attributes must be numerical"),
         (1, 1, [], 1, 1, "all attributes must be numerical"),
         (1, 1, 1, 1, "", "all attributes must be numerical"),
-        (9, -1, -1, 1, -1, "thought numerically possible for negative values, `growth_value` and `return_value` must be greater or equal to zero"),
-        (9, 0.15, -1, -1, -1, "thought numerically possible for negative values, `growth_value` and `return_value` must be greater or equal to zero"),
-        (9, 0.15, 0.15, -1, -1, "thought numerically possible for other values, `future_pe` must be positive"),
+        (
+            9,
+            -1,
+            -1,
+            1,
+            -1,
+            "thought numerically possible for negative values, `growth_value` and `return_value` must be greater or equal to zero",
+        ),
+        (
+            9,
+            0.15,
+            -1,
+            -1,
+            -1,
+            "thought numerically possible for negative values, `growth_value` and `return_value` must be greater or equal to zero",
+        ),
+        (
+            9,
+            0.15,
+            0.15,
+            -1,
+            -1,
+            "thought numerically possible for other values, `future_pe` must be positive",
+        ),
         (9, 0.15, 0.15, 1, -1, "`years` attribute must be positive"),
-    ]
+    ],
 )
-def test_compute_pex_value_handler_crash(eps, growth_value, return_value, future_pe, years, pfv):
+def test_compute_pex_value_handler_crash(
+    eps, growth_value, return_value, future_pe, years, pfv
+):
     with pytest.raises((TypeError, ValueError)) as e:
         _ = compute_pex_value_handler(eps, growth_value, return_value, future_pe, years)
     assert str(e.value) == pfv
+
 
 @pytest.mark.usefixtures("pex_handler_variables")
 def test_compute_pex_value_handler(pex_handler_variables):
@@ -115,30 +145,59 @@ def test_compute_pex_value_handler(pex_handler_variables):
         pex_handler_variables.get("years"),
         pex_handler_variables.get("pfv"),
     )
-    computed_pfv = compute_pex_value_handler(eps, growth_value, return_value, future_pe, years)
+    computed_pfv = compute_pex_value_handler(
+        eps, growth_value, return_value, future_pe, years
+    )
     assert np.isclose(computed_pfv, pfv, atol=TOLERANCE)
 
     growth_value = 1000
     return_value = 1000
     pfv = 34.042
-    computed_pfv = compute_pex_value_handler(eps, growth_value, return_value, future_pe, years)
+    computed_pfv = compute_pex_value_handler(
+        eps, growth_value, return_value, future_pe, years
+    )
     assert np.isclose(computed_pfv, pfv, atol=TOLERANCE)
+
 
 @pytest.mark.parametrize(
     "deco, growth_value, return_value, future_pe, years, pfv",
     [
         (None, [], "", -1, -1, "`deco` attribute must be a dictionary"),
         ({}, [], "", -1, -1, "`eps` key is expected in `deco`"),
-        ({"eps": -1}, [], "", -1, -1, "attributes `growth_value`, `return_value`, `future_pe` and `years` must all be numeric"),
-        ({"eps": -1}, 0.15, "", -1, -1, "attributes `growth_value`, `return_value`, `future_pe` and `years` must all be numeric"),
-        ({"eps": -1}, 0.15, 0.20, -1, -1, "thought numerically possible for other values, `future_pe` must be positive"),
+        (
+            {"eps": -1},
+            [],
+            "",
+            -1,
+            -1,
+            "attributes `growth_value`, `return_value`, `future_pe` and `years` must all be numeric",
+        ),
+        (
+            {"eps": -1},
+            0.15,
+            "",
+            -1,
+            -1,
+            "attributes `growth_value`, `return_value`, `future_pe` and `years` must all be numeric",
+        ),
+        (
+            {"eps": -1},
+            0.15,
+            0.20,
+            -1,
+            -1,
+            "thought numerically possible for other values, `future_pe` must be positive",
+        ),
         ({"eps": -1}, 0.15, 0.20, 1, -1, "`years` attribute must be positive"),
     ],
 )
-def test_compute_pex_value_crash(deco, growth_value, return_value, future_pe, years, pfv):
+def test_compute_pex_value_crash(
+    deco, growth_value, return_value, future_pe, years, pfv
+):
     with pytest.raises((TypeError, ValueError)) as e:
         _ = compute_pex_value(deco, growth_value, return_value, future_pe, years)
     assert str(e.value) == pfv
+
 
 @pytest.mark.usefixtures("pex_variables")
 def test_compute_pex_value(pex_variables):
@@ -160,17 +219,19 @@ def test_compute_pex_value(pex_variables):
     computed_pfv = compute_pex_value(deco, growth_value, return_value, future_pe, years)
     assert np.isclose(computed_pfv, pfv, atol=TOLERANCE)
 
+
 @pytest.mark.parametrize(
     "deco, tangible_bv",
     [
         (None, "`deco` attribute must be a dictionary"),
         ([], "`deco` attribute must be a dictionary"),
-    ]
+    ],
 )
 def test_compute_tangible_book_value_crash(deco, tangible_bv):
     with pytest.raises(AttributeError) as e:
         _ = compute_tangible_book_value(deco)
     assert str(e.value) == tangible_bv
+
 
 @pytest.mark.usefixtures("tangible_bv_variables")
 def test_compute_tangible_book_value(tangible_bv_variables):
@@ -185,17 +246,19 @@ def test_compute_tangible_book_value(tangible_bv_variables):
     expected_tbv = -4217999
     assert np.isclose(computed_tbv, expected_tbv, atol=TOLERANCE)
 
+
 @pytest.mark.parametrize(
     "deco, tangible_bvps",
     [
         (None, "`deco` attribute must be a dictionary"),
         ([], "`deco` attribute must be a dictionary"),
-    ]
+    ],
 )
 def test_compute_tangible_book_value_ps_crash(deco, tangible_bvps):
     with pytest.raises(AttributeError) as e:
         _ = compute_tangible_book_value_ps(deco)
     assert str(e.value) == tangible_bvps
+
 
 @pytest.mark.usefixtures("compute_tangible_bvps")
 def test_compute_tangible_book_value_ps(compute_tangible_bvps):
@@ -215,52 +278,70 @@ def test_compute_tangible_book_value_ps(compute_tangible_bvps):
     computed_tangible_bvps = compute_tangible_book_value_ps(compute_tangible_bvps)
     assert np.isclose(expected_tangible_bvps, computed_tangible_bvps, atol=TOLERANCE)
 
+
 @pytest.mark.parametrize(
     "deco, dct_tangible_bv",
     [
         (None, "`deco` attribute must be a dictionary"),
         ([], "`deco` attribute must be a dictionary"),
-    ]
+    ],
 )
 def test_compute_discounted_tangible_book_value_crash(deco, dct_tangible_bv):
     with pytest.raises(AttributeError) as e:
         _ = compute_discounted_tangible_book_value(deco)
     assert str(e.value) == dct_tangible_bv
 
+
 @pytest.mark.usefixtures("dct_tangible_bv_variables", "tangible_bv_variables")
-def test_compute_discounted_tangible_book_value(dct_tangible_bv_variables, tangible_bv_variables):
+def test_compute_discounted_tangible_book_value(
+    dct_tangible_bv_variables, tangible_bv_variables
+):
     expected_dct_tangible_bv = dct_tangible_bv_variables.get("dct_tangible_bv")
-    computed_dct_tangible_bv = compute_discounted_tangible_book_value(dct_tangible_bv_variables)
-    assert np.isclose(expected_dct_tangible_bv, computed_dct_tangible_bv, atol=TOLERANCE)
+    computed_dct_tangible_bv = compute_discounted_tangible_book_value(
+        dct_tangible_bv_variables
+    )
+    assert np.isclose(
+        expected_dct_tangible_bv, computed_dct_tangible_bv, atol=TOLERANCE
+    )
 
     tangible_bv = tangible_bv_variables.get("tangible_bv")
     assert tangible_bv >= computed_dct_tangible_bv
 
     dct_tangible_bv_variables[TOTAL_ASSETS_KEY] = 1
     expected_dct_tangible_bv = -4476999
-    computed_dct_tangible_bv = compute_discounted_tangible_book_value(dct_tangible_bv_variables)
-    assert np.isclose(expected_dct_tangible_bv, computed_dct_tangible_bv, atol=TOLERANCE)
+    computed_dct_tangible_bv = compute_discounted_tangible_book_value(
+        dct_tangible_bv_variables
+    )
+    assert np.isclose(
+        expected_dct_tangible_bv, computed_dct_tangible_bv, atol=TOLERANCE
+    )
+
 
 @pytest.mark.parametrize(
     "deco, dct_tangible_bvps",
     [
         (None, "`deco` attribute must be a dictionary"),
         ([], "`deco` attribute must be a dictionary"),
-    ]
+    ],
 )
 def test_compute_discounted_tangible_book_value_ps_crash(deco, dct_tangible_bvps):
     with pytest.raises(AttributeError) as e:
         _ = compute_discounted_tangible_book_value_ps(deco)
     assert str(e.value) == dct_tangible_bvps
 
+
 @pytest.mark.usefixtures("compute_dct_tangible_bvps", "compute_tangible_bvps")
-def test_compute_discounted_tangible_book_value_ps(compute_dct_tangible_bvps, compute_tangible_bvps):
+def test_compute_discounted_tangible_book_value_ps(
+    compute_dct_tangible_bvps, compute_tangible_bvps
+):
     computed_dct_tangible_bvps = compute_discounted_tangible_book_value_ps(
         compute_dct_tangible_bvps,
     )
     expected_dct_tangible_bvps = compute_dct_tangible_bvps.get("dct_tangible_bvps")
-    assert np.isclose(computed_dct_tangible_bvps, expected_dct_tangible_bvps, atol=TOLERANCE)
-    
+    assert np.isclose(
+        computed_dct_tangible_bvps, expected_dct_tangible_bvps, atol=TOLERANCE
+    )
+
     expected_tangible_bvps = compute_tangible_bvps.get("tangible_bvps")
     assert computed_dct_tangible_bvps <= expected_tangible_bvps
 
@@ -269,18 +350,22 @@ def test_compute_discounted_tangible_book_value_ps(compute_dct_tangible_bvps, co
     computed_dct_tangible_bvps = compute_discounted_tangible_book_value_ps(
         compute_dct_tangible_bvps,
     )
-    assert np.isclose(computed_dct_tangible_bvps, expected_dct_tangible_bvps, atol=TOLERANCE)
+    assert np.isclose(
+        computed_dct_tangible_bvps, expected_dct_tangible_bvps, atol=TOLERANCE
+    )
+
 
 @pytest.mark.parametrize(
     "deco, pe_ratio",
     [
         (None, "`deco` attribute must be a dictionary"),
-    ]
+    ],
 )
 def test_compute_pe_ratio_crash(deco, pe_ratio):
     with pytest.raises(AttributeError) as e:
         _ = compute_pe_ratio(deco)
     assert str(e.value) == pe_ratio
+
 
 @pytest.mark.usefixtures("pe_ratio_variables")
 def test_compute_pe_ratio(pe_ratio_variables):
@@ -301,17 +386,24 @@ def test_compute_pe_ratio(pe_ratio_variables):
     [
         (None, "total", "`deco` attribute must be a dictionary"),
         ({}, [], "`obligation_type` attribute must be a string"),
-        ({}, "total", f"`obligation_type` attribute must be one of the following: {EXPECTED_OBLIGATIONS}"),
-    ]
+        (
+            {},
+            "total",
+            f"`obligation_type` attribute must be one of the following: {EXPECTED_OBLIGATIONS}",
+        ),
+    ],
 )
 def test_compute_de_ratio_crash(deco, obligation_type, ratio):
     with pytest.raises(AttributeError) as e:
         _ = compute_de_ratio(deco, obligation_type)
     assert str(e.value) == ratio
 
+
 @pytest.mark.usefixtures("de_ratio_variables")
 def test_compute_de_ratio(de_ratio_variables):
-    expected_de_ratio = de_ratio_variables.get(TOTAL_LIAB_KEY) / de_ratio_variables.get(STOCKHOLDERS_EQUITY_KEY)
+    expected_de_ratio = de_ratio_variables.get(TOTAL_LIAB_KEY) / de_ratio_variables.get(
+        STOCKHOLDERS_EQUITY_KEY
+    )
     computed_de_ratio = compute_de_ratio(de_ratio_variables, "totalLiabilities")
     assert np.isclose(expected_de_ratio, computed_de_ratio, atol=TOLERANCE)
 
@@ -325,16 +417,37 @@ def test_compute_de_ratio(de_ratio_variables):
     "date, window_start_offset, window_end_offset, window",
     [
         (None, None, None, "`date` attribute must be a pandas timestamp"),
-        (pd.Timestamp("19-09-2022"), None, None, "both `window_start_offset` & `window_end_offset` must be positive integers"),
-        (pd.Timestamp("19-09-2022"), 3, None, "both `window_start_offset` & `window_end_offset` must be positive integers"),
-        (pd.Timestamp("19-09-2022"), 3, -1, "both `window_start_offset` & `window_end_offset` must be positive integers"),
-        (pd.Timestamp("19-09-2022"), 30, 15, "`window_end_offset` must be greater than or equal to `window_start_offset`"),
-    ]
+        (
+            pd.Timestamp("19-09-2022"),
+            None,
+            None,
+            "both `window_start_offset` & `window_end_offset` must be positive integers",
+        ),
+        (
+            pd.Timestamp("19-09-2022"),
+            3,
+            None,
+            "both `window_start_offset` & `window_end_offset` must be positive integers",
+        ),
+        (
+            pd.Timestamp("19-09-2022"),
+            3,
+            -1,
+            "both `window_start_offset` & `window_end_offset` must be positive integers",
+        ),
+        (
+            pd.Timestamp("19-09-2022"),
+            30,
+            15,
+            "`window_end_offset` must be greater than or equal to `window_start_offset`",
+        ),
+    ],
 )
 def test_get_date_range_crash(date, window_start_offset, window_end_offset, window):
     with pytest.raises((AttributeError, ValueError)) as e:
         _ = get_date_range(date, window_start_offset, window_end_offset)
     assert str(e.value) == window
+
 
 @pytest.mark.usefixtures("date_range_variables")
 def test_get_date_range(date_range_variables):
@@ -356,12 +469,13 @@ def test_get_date_range(date_range_variables):
     [
         (None, "`deco attribute must be a dictionary`"),
         ([], "`deco attribute must be a dictionary`"),
-    ]
+    ],
 )
 def test_get_reporting_window_crash(deco, window_and_date):
     with pytest.raises(AttributeError) as e:
         _ = get_reporting_window(deco)
     assert str(e.value) == window_and_date
+
 
 @pytest.mark.usefixtures("reporting_date_variables")
 def test_get_reporting_window(reporting_date_variables):
@@ -386,12 +500,13 @@ def test_get_reporting_window(reporting_date_variables):
     [
         (None, "`deco` attribute must be a dictionary"),
         ([], "`deco` attribute must be a dictionary"),
-    ]
+    ],
 )
 def test_get_price_history_crash(deco, price_history):
     with pytest.raises(AttributeError) as e:
         _ = get_price_history(deco)
     assert str(e.value) == price_history
+
 
 @pytest.mark.usefixtures("price_hist_variables")
 def test_get_price_history(price_hist_variables):
@@ -411,12 +526,17 @@ def test_get_price_history(price_hist_variables):
         (None, None, None, "`prices` attribute must be a list"),
         ([], None, None, "`filling_date_flag` attribute must be boolean"),
         ([], True, None, "`key` attribute must be a string"),
-    ]
+    ],
 )
-def test_compute_price_at_reporting_date_crash(prices, filling_date_flag, key, avg_price_at_report):
+def test_compute_price_at_reporting_date_crash(
+    prices, filling_date_flag, key, avg_price_at_report
+):
     with pytest.raises(AttributeError) as e:
-        _ = compute_price_at_reporting_date(prices=prices, filling_date_flag=filling_date_flag, key=key)
+        _ = compute_price_at_reporting_date(
+            prices=prices, filling_date_flag=filling_date_flag, key=key
+        )
     assert str(e.value) == avg_price_at_report
+
 
 @pytest.mark.usefixtures("reporting_date_price_variables")
 def test_compute_price_at_reporting_date(reporting_date_price_variables):
@@ -424,54 +544,51 @@ def test_compute_price_at_reporting_date(reporting_date_price_variables):
     computed_prices = compute_price_at_reporting_date(
         prices=reporting_date_price_variables.get("prices_content"),
         filling_date_flag=False,
-        key="low"
-        )
+        key="low",
+    )
     assert np.isclose(expected_prices, computed_prices, atol=TOLERANCE)
 
     expected_prices = reporting_date_price_variables.get("low_prices_true")
     computed_prices = compute_price_at_reporting_date(
         prices=reporting_date_price_variables.get("prices_content"),
         filling_date_flag=True,
-        key="low"
-        )
+        key="low",
+    )
     assert np.isclose(expected_prices, computed_prices, atol=TOLERANCE)
 
     expected_prices = reporting_date_price_variables.get("high_prices_false")
     computed_prices = compute_price_at_reporting_date(
         prices=reporting_date_price_variables.get("prices_content"),
         filling_date_flag=False,
-        key="high"
-        )
+        key="high",
+    )
     assert np.isclose(expected_prices, computed_prices, atol=TOLERANCE)
 
     expected_prices = reporting_date_price_variables.get("high_prices_true")
     computed_prices = compute_price_at_reporting_date(
         prices=reporting_date_price_variables.get("prices_content"),
         filling_date_flag=True,
-        key="high"
-        )
+        key="high",
+    )
     assert np.isclose(expected_prices, computed_prices, atol=TOLERANCE)
 
-    expected_prices = np.Inf
+    expected_prices = float("inf")
     computed_prices = compute_price_at_reporting_date(
-        prices=[],
-        filling_date_flag=False,
-        key="low"
-        )
+        prices=[], filling_date_flag=False, key="low"
+    )
     assert expected_prices == computed_prices
 
-    expected_prices = np.Inf
+    expected_prices = float("inf")
     computed_prices = compute_price_at_reporting_date(
-        prices=[],
-        filling_date_flag=True,
-        key="high"
-        )
+        prices=[], filling_date_flag=True, key="high"
+    )
     assert expected_prices == computed_prices
 
 
 """def growth_function(current: float, previous: float, nb_years: int) -> float:
     growth_value = round((current / previous) ** (1/nb_years) - 1, 4)
     return growth_value"""
+
 
 @pytest.mark.parametrize(
     "current, previous, nb_years, growth",
@@ -480,12 +597,13 @@ def test_compute_price_at_reporting_date(reporting_date_price_variables):
         (1, None, None, "all attributes must be numerical"),
         (1, 1, None, "all attributes must be numerical"),
         (1, 0, 5, "all attributes must be positive"),
-    ]
+    ],
 )
 def test_growth_function_crash(current, previous, nb_years, growth):
     with pytest.raises((TypeError, ValueError)) as e:
         _ = growth_function(current, previous, nb_years)
     assert str(e.value) == growth
+
 
 @pytest.mark.usefixtures("growth_function_variables")
 def test_growth_function(growth_function_variables):
@@ -520,23 +638,33 @@ def test_growth_function(growth_function_variables):
     growth = growth_function(current, previous, nb_years)
     return growth"""
 
+
 @pytest.mark.parametrize(
     "current, previous, nb_years, growth",
     [
         (None, None, None, "all attributes must be numerical"),
         (1, None, None, "all attributes must be numerical"),
         (1, 1, None, "all attributes must be numerical"),
-    ]
+    ],
 )
 def test_compute_growth_crash(current, previous, nb_years, growth):
     with pytest.raises(TypeError) as e:
         _ = compute_growth(current, previous, nb_years)
     assert str(e.value) == growth
 
+
 @pytest.mark.usefixtures("growth_function_variables")
 def test_compute_growth(growth_function_variables):
     for combination in (
-        "pos_neg1", "pos_neg2", "neg_pos1", "neg_pos2", "neg_neg1", "neg_neg2", "pos_pos1", "pos_pos2"):
+        "pos_neg1",
+        "pos_neg2",
+        "neg_pos1",
+        "neg_pos2",
+        "neg_neg1",
+        "neg_neg2",
+        "pos_pos1",
+        "pos_pos2",
+    ):
         attrs = growth_function_variables.get(combination)
         current, previous, nb_years, expected_growth = (
             attrs.get("current"),
