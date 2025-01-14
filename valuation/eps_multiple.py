@@ -179,7 +179,7 @@ def compute_tangible_book_value(deco: Dict[str, Any]) -> float:
 
 def compute_tangible_book_value_ps(deco: Dict[str, Any]) -> float:
     tangible_book_value = compute_tangible_book_value(deco)
-    nb_outs_shares = deco.get(SHARES_OUTS_KEY, np.Inf)
+    nb_outs_shares = deco.get(SHARES_OUTS_KEY, float("inf"))
     nb_outs_shares = max(nb_outs_shares, 1e-6)
     return tangible_book_value / nb_outs_shares
 
@@ -210,7 +210,7 @@ def compute_discounted_tangible_book_value(deco: Dict[str, Any]) -> float:
 
 def compute_discounted_tangible_book_value_ps(deco: Dict[str, Any]) -> float:
     tangible_book_value = compute_discounted_tangible_book_value(deco)
-    nb_outs_shares = deco.get(SHARES_OUTS_KEY, np.Inf)
+    nb_outs_shares = deco.get(SHARES_OUTS_KEY, float("inf"))
     return tangible_book_value / nb_outs_shares
 
 
@@ -331,7 +331,7 @@ def compute_price_at_reporting_date(
     if range_price_lows:
         avg_price_at_report = compute_avg_value(range_price_lows)
     else:
-        avg_price_at_report = np.Inf
+        avg_price_at_report = float("inf")
     return avg_price_at_report
 
 
@@ -396,9 +396,9 @@ def compute_price_at_reporting_date_OLD(deco, ticker):
         if range_price_lows:
             avg_price_at_report = compute_avg_value(range_price_lows)
         else:
-            avg_price_at_report = np.Inf
+            avg_price_at_report = float("inf")
     except Exception as e:
         print(f"Error fetching price data: {e}")
-        avg_price_at_report = np.Inf
+        avg_price_at_report = float("inf")
 
     return avg_price_at_report
