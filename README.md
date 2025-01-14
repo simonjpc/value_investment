@@ -3,7 +3,8 @@
 Python version 3.10.12
 
 ### Next steps (last update 03/11/2024)
-
+  
+  - check date discrepancy in site
   - filter CNY companies
   - get real / original symbols
   - backtest eps-x approach
