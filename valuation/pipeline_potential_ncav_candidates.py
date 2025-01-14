@@ -13,6 +13,7 @@ from valuation.constants import (
     POTENTIAL_NCAV_CANDIDATES_TABLE_NAME,
     POTENTIAL_NCAV_CANDIDATES_TICKER_COL_NAME,
     POTENTIAL_NCAV_CANDIDATES_DUMP_QUERY,
+    DROP_TABLE_IF_EXISTS_QUERY,
 )
 from valuation.liquidation import compute_ncavps
 from valuation.utils import (
@@ -124,6 +125,11 @@ def filter_ncav_candidates():
     # batches creation
     ticker_batches = batch_tickers(tickers=tickers, batch_size=290)
     try:
+        injector.execute_query(
+            DROP_TABLE_IF_EXISTS_QUERY.format(
+                table_name=POTENTIAL_NCAV_CANDIDATES_TABLE_NAME,
+            )
+        )
         # create table
         injector.execute_query(
             POTENTIAL_NCAV_CANDIDATES_DUMP_QUERY.format(
