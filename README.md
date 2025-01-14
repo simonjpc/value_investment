@@ -14,7 +14,7 @@ Python version 3.10.12
 
 #### Website
 
-This project runs in [tickersarena.com](www.tickersarena.com)
+This project runs in [tickersarena.com](http://www.tickersarena.com)
 
 
 #### Frontend
