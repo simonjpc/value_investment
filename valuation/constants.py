@@ -221,6 +221,8 @@ CREATE_INDEX_QUERY = """
     CREATE INDEX IF NOT EXISTS {index_name} ON {table_name} ({column_name})
 """
 
+DROP_TABLE_IF_EXISTS_QUERY = """DROP TABLE IF EXISTS {table_name};"""
+
 DAILY_PRICES_HISTORY_DUMP_QUERY = """
     CREATE TABLE IF NOT EXISTS {table_name} (
         date date,
