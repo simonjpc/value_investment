@@ -12,6 +12,10 @@ Python version 3.10.12
     - basic front end DONE
     - choice of remote host DONE
 
+#### Website
+
+This project runs in [tickersarena.com](www.tickersarena.com)
+
 
 #### Frontend
 
