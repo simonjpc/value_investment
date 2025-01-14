@@ -4,12 +4,13 @@ Python version 3.10.12
 
 ### Next steps (last update 03/11/2024)
 
-  - verify eps-x calculations ONGOING (tbfinished)
+  - filter CNY companies
   - get real / original symbols
+  - backtest eps-x approach
   - start to explore the "like product" strategy :
-    - celery for tasks launch
-    - basic front end
-    - choice of remote host
+    - celery for tasks launch DONE
+    - basic front end DONE
+    - choice of remote host DONE
 
 
 #### Frontend
