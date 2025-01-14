@@ -20,6 +20,7 @@ from valuation.constants import (
     POTENTIAL_PFV_CANDIDATES_IDX_NAME,
     POTENTIAL_PFV_CANDIDATES_TICKER_COL_NAME,
     GET_LAST_FINANCIAL_STMT_PER_SYMBOL_QUERY,
+    DROP_TABLE_IF_EXISTS_QUERY,
 )
 from valuation.eps_multiple import (
     compute_growth,
@@ -147,6 +148,12 @@ def filter_epsx_candidates():
     ticker_batches = batch_tickers(tickers=tickers, batch_size=290)
 
     try:
+        injector.execute_query(
+            DROP_TABLE_IF_EXISTS_QUERY.format(
+                table_name=POTENTIAL_PFV_CANDIDATES_TABLE_NAME,
+            )
+        )
+
         # create table
         injector.execute_query(
             POTENTIAL_PFV_CANDIDATES_DUMP_QUERY.format(
