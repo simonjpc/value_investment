@@ -12,7 +12,8 @@ Python version 3.10.12
     - celery for tasks launch DONE
     - basic front end DONE
     - choice of remote host DONE
-
+  - update ncav and epsx pipelines for daily instead of monthly
+  - associate current prices table to ncav & epsx pipelines
 #### Website
 
 This project runs in [tickersarena.com](http://www.tickersarena.com)
