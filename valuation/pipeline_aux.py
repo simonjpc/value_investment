@@ -22,3 +22,13 @@ def workflow():
         filter_epsx_candidates()
     except Exception as e:
         print(f"failed auxiliar workflow with error: {e}")
+
+
+@app.task
+def candidates_selection_workflow():
+    try:
+        tickers_current_prices()
+        filter_ncav_candidates()
+        filter_epsx_candidates()
+    except Exception as e:
+        print(f"failed auxiliar candidates selection workflow with error: {e}")
