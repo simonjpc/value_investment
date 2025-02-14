@@ -26,18 +26,25 @@ app.conf.beat_schedule = {
     "monthly_workflow": {
         "task": "tasks.run_tasks.run_workflow",
         "schedule": crontab(
-            day_of_month=12,
-            hour=0,
-            minute=0,
-            # minute="*/14"
+            day_of_month=15,
+            hour=22,
+            minute=12,
+            # minute="*/30"
         ),  # Runs on the 1st of every month at midnight
         "options": {"start_time": monthly_workflow_start_time},
     },
     # Schedule the daily task
-    "daily_tickers_prices": {
-        "task": "tasks.run_tasks.tickers_current_prices_wrapper",
+    # "daily_tickers_prices": {
+    #     "task": "tasks.run_tasks.tickers_current_prices_wrapper",
+    #     "schedule": crontab(hour=0, minute=15),  # Runs every day at midnight fifteen
+    #     # "schedule": crontab(minute="*/4"),
+    #     "options": {"start_time": daily_workflow_start_time},
+    # },
+    # Schedule the candidates task
+    "potential_candidates": {
+        "task": "tasks.run_tasks.candidates_workflow",
         "schedule": crontab(hour=0, minute=15),  # Runs every day at midnight fifteen
-        # "schedule": crontab(minute="*/5"),
+        # "schedule": crontab(minute="*/3"),
         "options": {"start_time": daily_workflow_start_time},
     },
 }
