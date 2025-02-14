@@ -20,7 +20,8 @@ from valuation.constants import (
     POTENTIAL_PFV_CANDIDATES_IDX_NAME,
     POTENTIAL_PFV_CANDIDATES_TICKER_COL_NAME,
     GET_LAST_FINANCIAL_STMT_PER_SYMBOL_QUERY,
-    DROP_TABLE_IF_EXISTS_QUERY,
+    DELETE_OUTDATED_ROWS_QUERY,
+    CREATE_INDEX_QUERY,
 )
 from valuation.eps_multiple import (
     compute_growth,
@@ -109,8 +110,8 @@ def single_ticker_candidacy_pipeline(
         df.iloc[0], growth_value, return_value, future_pe, years, quarters
     )
 
-    current_price = get_current_price(ticker)
-    # current_price = get_current_price_from_table(ticker, engine)
+    # current_price = get_current_price(ticker)
+    current_price = get_current_price_from_table(ticker, engine)
 
     if current_price is None:
         return None
@@ -136,7 +137,6 @@ def single_ticker_candidacy_pipeline(
     return True
 
 
-# @app.task()
 def filter_epsx_candidates():
     injector = Injector()
 
@@ -148,12 +148,6 @@ def filter_epsx_candidates():
     ticker_batches = batch_tickers(tickers=tickers, batch_size=290)
 
     try:
-        injector.execute_query(
-            DROP_TABLE_IF_EXISTS_QUERY.format(
-                table_name=POTENTIAL_PFV_CANDIDATES_TABLE_NAME,
-            )
-        )
-
         # create table
         injector.execute_query(
             POTENTIAL_PFV_CANDIDATES_DUMP_QUERY.format(
@@ -163,7 +157,7 @@ def filter_epsx_candidates():
         )
         # create index
         injector.execute_query(
-            POTENTIAL_PFV_CANDIDATES_DUMP_QUERY.format(
+            CREATE_INDEX_QUERY.format(
                 index_name=POTENTIAL_PFV_CANDIDATES_IDX_NAME,
                 table_name=POTENTIAL_PFV_CANDIDATES_TABLE_NAME,
                 column_name=POTENTIAL_PFV_CANDIDATES_TICKER_COL_NAME,
@@ -172,7 +166,7 @@ def filter_epsx_candidates():
         )
         for idx, batch in enumerate(ticker_batches):
             log.info(
-                f"Starting batch {idx + 1}/{len(ticker_batches)} with {len(batch)} tickers..."
+                f"Starting batch {idx + 1}/{len(ticker_batches)} with {len(batch)} tickers (epsx candidates)..."
             )
 
             with concurrent.futures.ThreadPoolExecutor() as executor:
@@ -183,9 +177,16 @@ def filter_epsx_candidates():
                 for future in concurrent.futures.as_completed(dumping_futures):
                     dumping_output = future.result()
 
-            log.info(f"batch {idx + 1} executed")
+            log.info(f"batch {idx + 1} executed (epsx candidates)")
             log.info(f"waiting 1 min...")
-            time.sleep(61)
+            # time.sleep(61)
+
+        injector.execute_query(
+            DELETE_OUTDATED_ROWS_QUERY.format(
+                table_name=POTENTIAL_PFV_CANDIDATES_TABLE_NAME,
+            ),
+            connection,
+        )
 
     except exc.SQLAlchemyError as e:
         print(f"An error occurred: {e}")
@@ -194,7 +195,7 @@ def filter_epsx_candidates():
         connection.close()
         engine.dispose()
 
-    log.info("all batches executed")
+    log.info("all batches executed for epsx candidates")
 
 
 if __name__ == "__main__":

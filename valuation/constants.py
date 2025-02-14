@@ -221,8 +221,6 @@ CREATE_INDEX_QUERY = """
     CREATE INDEX IF NOT EXISTS {index_name} ON {table_name} ({column_name})
 """
 
-DROP_TABLE_IF_EXISTS_QUERY = """DROP TABLE IF EXISTS {table_name};"""
-
 DAILY_PRICES_HISTORY_DUMP_QUERY = """
     CREATE TABLE IF NOT EXISTS {table_name} (
         date date,
@@ -307,6 +305,11 @@ TICKER_FINANCIAL_STMTS_IN_RANGE_QUERY = """
     SELECT *
     FROM financial_stmts
     WHERE symbol_bs = '{ticker}' and period_bs = '{period}'
+"""
+
+DELETE_OUTDATED_ROWS_QUERY = """
+DELETE FROM {table_name}
+WHERE updated_at < (SELECT MAX(updated_at) FROM {table_name});
 """
 
 BACKTESTING_COL_NAMES = [

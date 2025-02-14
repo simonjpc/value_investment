@@ -105,10 +105,8 @@ def tickers_financial_stmts_data():
     log.info("starting...")
     dataloader = DataLoader()
     injector = Injector()
-    log.info("dataloader & injector constructors called")
 
     connection = engine.connect()
-    log.info("engine defined and first connection created")
 
     # data loading
     tickers_recent = pd.read_sql(GET_ALL_LISTED_TICKERS_QUERY, connection)

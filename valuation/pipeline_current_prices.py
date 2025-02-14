@@ -107,58 +107,59 @@ def tickers_current_prices():
 
 @app.task
 def tickers_current_prices_workflow():
-    with engine.connect() as connection:
-        df = pd.read_sql(TICKERS_FROM_FINANCIAL_STMTS_QUERY, connection)
+    # with engine.connect() as connection:
+    #     df = pd.read_sql(TICKERS_FROM_FINANCIAL_STMTS_QUERY, connection)
 
-    connection = engine.connect()
-    logging.info("all tickers fetched")
-    all_tickers = df["symbol_bs"].tolist()
-    all_tickers = [ticker for ticker in all_tickers if ticker is not None]
-    logging.info("tickers list created")
+    # connection = engine.connect()
+    # logging.info("all tickers fetched")
+    # all_tickers = df["symbol_bs"].tolist()
+    # all_tickers = [ticker for ticker in all_tickers if ticker is not None]
+    # logging.info("tickers list created")
 
-    batches = batch_tickers(tickers=all_tickers, batch_size=300)
-    logging.info("batches created")
+    # batches = batch_tickers(tickers=all_tickers, batch_size=300)
+    # logging.info("batches created")
 
-    try:
-        injector.execute_query(
-            CURRENT_PRICES_TABLE_QUERY.format(table_name=CURRENT_PRICES_TABLE_NAME),
-            connection=connection,
-        )
+    # try:
+    #     injector.execute_query(
+    #         CURRENT_PRICES_TABLE_QUERY.format(table_name=CURRENT_PRICES_TABLE_NAME),
+    #         connection=connection,
+    #     )
 
-        injector.execute_query(
-            CREATE_INDEX_QUERY.format(
-                index_name="ticker_idx",
-                table_name=CURRENT_PRICES_TABLE_NAME,
-                column_name="ticker",
-            ),
-            connection=connection,
-        )
+    #     injector.execute_query(
+    #         CREATE_INDEX_QUERY.format(
+    #             index_name="ticker_idx",
+    #             table_name=CURRENT_PRICES_TABLE_NAME,
+    #             column_name="ticker",
+    #         ),
+    #         connection=connection,
+    #     )
 
-        for idx, batch in enumerate(batches):
-            log.info(
-                f"Starting batch {idx + 1}/{len(batches)} with {len(batch)} tickers..."
-            )
-            with concurrent.futures.ThreadPoolExecutor() as executor:
-                dumping_futures = [
-                    executor.submit(
-                        current_ticker_price_df,
-                        ticker,
-                        CURRENT_PRICES_TABLE_NAME,
-                    )
-                    for ticker in batch
-                ]
-                for future in concurrent.futures.as_completed(dumping_futures):
-                    dumping_flag = future.result()
-            log.info(f"batch {idx + 1} executed")
-            log.info(f"waiting 1 min...")
-            time.sleep(61)
+    #     for idx, batch in enumerate(batches):
+    #         log.info(
+    #             f"Starting batch {idx + 1}/{len(batches)} with {len(batch)} tickers..."
+    #         )
+    #         with concurrent.futures.ThreadPoolExecutor() as executor:
+    #             dumping_futures = [
+    #                 executor.submit(
+    #                     current_ticker_price_df,
+    #                     ticker,
+    #                     CURRENT_PRICES_TABLE_NAME,
+    #                 )
+    #                 for ticker in batch
+    #             ]
+    #             for future in concurrent.futures.as_completed(dumping_futures):
+    #                 dumping_flag = future.result()
+    #         log.info(f"batch {idx + 1} executed")
+    #         log.info(f"waiting 1 min...")
+    #         time.sleep(61)
 
-    except exc.SQLAlchemyError as e:
-        print(f"An error occurred: {e}")
+    # except exc.SQLAlchemyError as e:
+    #     print(f"An error occurred: {e}")
 
-    finally:
-        connection.close()
-        engine.dispose()
+    # finally:
+    #     connection.close()
+    #     engine.dispose()
+    tickers_current_prices()
 
 
 if __name__ == "__main__":

@@ -103,14 +103,14 @@ def compute_stat_bound(
 def compute_avg_value(iterator: List[float]) -> float:
     if not isinstance(iterator, (tuple, list)):
         raise TypeError("`iterator` attribute must be a list or a tuple")
+    if not len(iterator):
+        return 0
     try:
         average = np.mean(iterator)
         if np.isnan(average):
             raise ValueError("all elements of `iterator` attribute must be numerical")
     except:
         raise ValueError("all elements of `iterator` attribute must be numerical")
-    if not len(iterator):
-        return 0
     return np.mean(iterator)
 
 
@@ -345,12 +345,15 @@ def compute_change_percentage(shares_outstanding: pd.Series) -> float:
             return ((end + shift) - (start + shift)) / (start + shift)
 
 
-def get_current_price_from_table(column: str, engine) -> Any:
-    query = f"select {column} from current_prices"
+def get_current_price_from_table(ticker: str, engine) -> Any:
+    query = f"SELECT price FROM current_prices WHERE ticker = '{ticker}' LIMIT 1 OFFSET (SELECT COUNT(*) - 1 FROM current_prices WHERE ticker = '{ticker}');"
     with engine.connect() as connection:
         df = pd.read_sql(query, connection)
     print(df)
-    return df.loc[0, column]
+    try:
+        return float(df.loc[0, "price"])
+    except:
+        return None
 
 
 def display_verification(element):
