@@ -6,7 +6,7 @@ from valuation.pipeline_tickers import tickers_data
 from valuation.pipeline_drop_db_connections import terminate_all_connections
 from valuation.pipeline_potential_epsx_candidates import filter_epsx_candidates
 from valuation.pipeline_potential_ncav_candidates import filter_ncav_candidates
-from valuation.pipeline_aux import workflow
+from valuation.pipeline_aux import workflow, candidates_selection_workflow
 from celery import shared_task
 from datetime import datetime, timedelta
 import redis
@@ -69,11 +69,37 @@ def run_workflow():
         redis_client.delete(WORKFLOW_RUNNING_KEY)
 
 
+# @shared_task
+# def tickers_current_prices_wrapper():
+#     # Check if workflow is running
+#     if redis_client.get(WORKFLOW_RUNNING_KEY):
+#         print("Workflow is running. Delaying `tickers_current_prices`...")
+#         return  # Skip or reschedule based on requirement
+#     try:
+#         redis_client.set(
+#             CURRENT_PRICE_RUNNING_KEY, "1"
+#         )  # only because we have an api rate limit
+#         # Check if the last workflow was recent (e.g., within the last month)
+#         time.sleep(61)
+#         last_run = redis_client.get(LAST_WORKFLOW_RUN_KEY)
+#         if last_run:
+#             last_run = datetime.fromisoformat(last_run.decode())
+#             if last_run > datetime.now() - timedelta(days=30):
+#                 print(
+#                     "Workflow recently completed. Running `tickers_current_prices`..."
+#                 )
+#                 tickers_current_prices_workflow.delay()  # Call the actual task
+#         else:
+#             print("Workflow hasn't completed recently. Waiting...")
+#     finally:
+#         redis_client.delete(CURRENT_PRICE_RUNNING_KEY)
+
+
 @shared_task
-def tickers_current_prices_wrapper():
+def candidates_workflow():
     # Check if workflow is running
     if redis_client.get(WORKFLOW_RUNNING_KEY):
-        print("Workflow is running. Delaying `tickers_current_prices`...")
+        print("Workflow is running. Delaying `candidates_workflow`...")
         return  # Skip or reschedule based on requirement
     try:
         redis_client.set(
@@ -85,10 +111,8 @@ def tickers_current_prices_wrapper():
         if last_run:
             last_run = datetime.fromisoformat(last_run.decode())
             if last_run > datetime.now() - timedelta(days=30):
-                print(
-                    "Workflow recently completed. Running `tickers_current_prices`..."
-                )
-                tickers_current_prices_workflow.delay()  # Call the actual task
+                print("Workflow recently completed. Running `candidates_workflow`...")
+                candidates_selection_workflow.delay()  # Call the actual task
         else:
             print("Workflow hasn't completed recently. Waiting...")
     finally:
