@@ -30,4 +30,4 @@ To run backend : `python backend/app.py`
 
 #### Pipelines
 
-To run pipelines : `celery -A celery_app worker --loglevel=info` or `export OBJC_DISABLE_INITIALIZE_FORK_SAFETY=YES && celery -A celery_app worker --loglevel=info` and `celery -A celery_app beat --loglevel=info`
+To run pipelines : `celery -A celery_app worker --loglevel=info --pool=solo` or `export OBJC_DISABLE_INITIALIZE_FORK_SAFETY=YES && celery -A celery_app worker --loglevel=info --pool=solo` and `celery -A celery_app beat --loglevel=info`
