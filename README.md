@@ -23,12 +23,14 @@ To run pipelines :
 
 * Scheduler : `celery -A celery_app beat --loglevel=info`
 
-### Next steps (last update 03/11/2024)
+### Next steps (last update 16/02/2025)
   
   - check date discrepancy in site DONE
   - filter CNY companies
   - get real / original symbols
+  - filter out eps-x candidates without float value
   - backtest eps-x approach
   - make the app executable via *docker-compose -f ...yml -d up*
   - update ncav and epsx pipelines for daily instead of monthly DONE
   - associate current prices table to ncav & epsx pipelines DONE
+
