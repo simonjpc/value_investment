@@ -46,10 +46,10 @@ The project is hosted at [tickersarena.com](http://www.tickersarena.com).
 ### Steps
 
 1. Clone the repository:
-   ```bash
-   git clone https://github.com/your-repo/value_investment.git
-   cd value_investment
-   ```
+  ```bash
+  git clone https://github.com/your-repo/value_investment.git
+  cd value_investment
+  ```
 
 
 2. Install backend dependencies:
