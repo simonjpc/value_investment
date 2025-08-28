@@ -108,7 +108,7 @@ Start the Celery scheduler:
 
 This project is licensed under the Apache 2.0 License. See the [LICENSE](LICENSE) file for details.
 
-### Next steps (last update 16/02/2025)
+### Next steps (last update 28/08/2025)
   
   - filter CNY companies
   - make real / original symbols mapping
